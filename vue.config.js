@@ -93,7 +93,7 @@ module.exports = {
     open: false, //自动打开浏览器
     hot: true, //实时打包编译
     inline: true, //实时刷新浏览器
-    host: "192.168.254.123",
+    host: "0.0.0.0",
     port: 8091,
     https: false,
     hotOnly: false,

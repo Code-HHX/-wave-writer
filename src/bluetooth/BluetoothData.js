@@ -84,7 +84,7 @@ export class WriterSetting {
   micSensitivity = 60; //默认60  u8类型
   touchSensitivity = 100; //默认100  u8类型
   writeLimit = 0; // allcnt 限制烧录多少个设备  u16类型
-  versionFeature; //功能特性 1,2,3,4,5 ，5为全功能   u8类型
+  versionFeature = 4; //功能特性 1,2,3,4,5 ，5为全功能   u8类型
 
   constructor(dataView) {
     if (dataView instanceof DataView) {

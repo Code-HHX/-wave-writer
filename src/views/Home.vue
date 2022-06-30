@@ -10,7 +10,6 @@
     <!--头-->
     <div class="header">
       <img class="header-menu" src="@/assets/icons/icon_menu.png" />
-      <img class="header-logo" src="@/assets/logo/logo_via.png" />
       <img
         class="header-bluetooth"
         @click="onClickDisconnectDevice"
@@ -22,7 +21,6 @@
       />
       <!-- <img class="header-logo" src="@/assets/logo/logo_via.png" /> -->
       <span class="header-title">Wave writer</span>
-      <img class="header-bluetooth" src="@/assets/icons/icon_bluetooth.png" />
     </div>
     <!--设置内容-->
     <div class="content">
@@ -78,7 +76,7 @@
           <van-slider
             v-for="(value, index) in diyVoltage"
             :key="index"
-            v-model="diyVoltage[index]"
+            v-model="modelList[0].setting.diyVoltage[index]"
             vertical
             min="-4200"
             max="-100"
@@ -114,7 +112,12 @@
               />
             </div>
             <div class="subtitle">
-              Times：<span :style="modelList[curveModel].setting.isSupportPreheat ? 'color:#6649C4' : 'color:#555555'"
+              Times：<span
+                :style="
+                  modelList[curveModel].setting.isSupportPreheat
+                    ? 'color:#6649C4'
+                    : 'color:#555555'
+                "
                 >{{
                   (modelList[curveModel].setting.preheatTime / 1000).toFixed(1)
                 }}s</span
@@ -149,7 +152,12 @@
               </div>
             </div>
             <div class="subtitle">
-              Voltage：<span :style="modelList[curveModel].setting.isSupportPreheat ? 'color:#6649C4' : 'color:#555555'"
+              Voltage：<span
+                :style="
+                  modelList[curveModel].setting.isSupportPreheat
+                    ? 'color:#6649C4'
+                    : 'color:#555555'
+                "
                 >{{
                   (modelList[curveModel].setting.preheatVoltage / 1000).toFixed(
                     1
@@ -277,20 +285,21 @@ export default {
   methods: {
     onClickModelItem(index) {
       this.curveModel = index;
-      if (index == 0) {
-        return;
-      } else if (index == 1) {
-        this.voltageCurve = [-4.2, -4.2, -4.2, -4.2, -4.2, -4.2];
-      } else if (index == 2) {
-        this.voltageCurve = [-1, -2, -3, -4, -2.5, -0.1];
-      } else if (index == 3) {
-        this.voltageCurve = [-4.2, -0.1, -3.5, -4, -0.5, -3.3];
-      } else if (index == 4) {
-        this.voltageCurve = [-3.1, -1.6, -1.2, -3.6, -4.1, -0.1];
-      } else if (index == 5) {
-        this.voltageCurve = [-0.1, -1.1, -2.1, -3.1, -4.1, -4.2];
+      Object.assign(this.modelList[0].setting, this.modelList[index].setting);
+      const origin = this.modelList[0].setting.diyVoltage;
+      let diyVoltage = [];
+      this.modelList[0].setting.diyVoltage = [].concat(origin);
+    },
+
+    onTouchmoveVoltage(e) {},
+
+    onChangeVoltageCurve(index) {
+      if (this.curveModel !== 0) {
+        this.curveModel = 0;
+        this.$refs.modelSelect.scrollTo(0, 0);
       }
     },
+
     onClickSave() {
       if (this.modelList.length >= 6) {
         this.$toast({
@@ -320,7 +329,10 @@ export default {
       }
 
       const writerSetting = new WriterSetting();
-      Object.extends(writerSetting, this.modelList[this.curveModel].setting);
+      Object.assign(writerSetting, this.diySetting);
+      writerSetting.diyVoltage = writerSetting.diyVoltage.map(item =>
+        Math.abs(item)
+      );
       bluetoothRepository.writeToWriter(writerSetting);
     },
     getVoltageOne() {
@@ -331,20 +343,13 @@ export default {
       if (document.getElementById("voltageOne")) {
         this.myChart.setOption(voltageData, true);
       }
-    },
-    onTouchmoveVoltage(e) {},
-    onChangeVoltageCurve(index) {
-      if (this.curveModel !== 0) {
-        this.curveModel = 0;
-        this.$refs.modelSelect.scrollTo(0, 0);
-      }
-      // this.refreshVoltageCurve();
-    },
-    //刷新echarts
-    refreshVoltageCurve() {
-      voltageData.series[0].data = this.voltageNewData;
-      this.myChart.setOption(voltageData, true);
     }
+    // this.refreshVoltageCurve();
+  },
+  //刷新echarts
+  refreshVoltageCurve() {
+    // voltageData.series[0].data = this.voltageNewData;
+    // this.myChart.setOption(voltageData, true);
   }
 };
 </script>

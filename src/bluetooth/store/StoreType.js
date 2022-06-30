@@ -73,7 +73,6 @@ export const STATE_DEVICE_ID = "device_id"; //预设参数是否改变
 export const STATE_IS_DEVICE_SUPPORT_READ = "is_device_support_read"; //预设参数是否改变
 
 export default {
-  BLUETOOTH_MODULE_NAME,
   ConnectState: {
     CONNECT_STATE_DISCONNECTED,
     CONNECT_STATE_CONNECTING,
