@@ -24,7 +24,8 @@ import {
   Button,
   Switch,
   Toast,
-  Slider
+  Slider,
+  Icon
 } from "vant";
 
 Vue.use(Popup);
@@ -34,6 +35,7 @@ Vue.use(Button);
 Vue.use(Switch);
 Vue.use(Toast);
 Vue.use(Slider);
+Vue.use(Icon);
 Vue.use(Waves);
 
 //全局暴露api接口
