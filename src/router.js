@@ -27,9 +27,16 @@ export const routes = [
     auth: false //是否登录鉴权
   },
   {
+    path: "/History",
+    name: "History",
+    component: () => import("@/views/History.vue"),
+    meta: {},
+    auth: false //是否登录鉴权
+  },
+  {
     path: "*",
     redirect: {
-      name: "Login"
+      name: "Home"
     }
   }
 ];
