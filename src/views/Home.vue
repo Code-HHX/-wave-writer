@@ -14,8 +14,6 @@
 				src="@/assets/icons/icon_menu.png"
 				@click="onClickMenu"
 			/>
-			<!-- <img class="header-logo" src="@/assets/logo/logo_via.png" /> -->
-			<span class="header-title">Wave writer</span>
 			<img
 				class="header-bluetooth"
 				@click="onClickDisconnectDevice"
@@ -25,6 +23,8 @@
 						: require('@/assets/icons/icon_bluetooth_disconnected.png')
 				"
 			/>
+			<!-- <img class="header-logo" src="@/assets/logo/logo_via.png" /> -->
+			<span class="header-title">Wave writer</span>
 		</div>
 		<!--设置内容-->
 		<div class="content">
@@ -55,7 +55,8 @@
 			</div>
 			<div class="content-main">
 				<div class="main-header">
-					<span>{{ modelList[curveModel].text }}</span>
+					<!-- <span>{{ modelList[curveModel].text }}</span> -->
+          <span>Voltage Curve</span>
 					<van-button
 						class="main-header-save"
 						type="default"
@@ -84,7 +85,7 @@
 					<van-slider
 						v-for="(value, index) in diyVoltage"
 						:key="index"
-						v-model="diyVoltage[index]"
+						v-model="modelList[0].setting.diyVoltage[index]"
 						vertical
 						min="-4200"
 						max="-100"
@@ -112,9 +113,10 @@
 						<div class="title">
 							Preheat
 							<van-switch
+              @change="onClickModelItem(0)"
 								class="preheat-switch"
 								v-model="
-									modelList[curveModel].setting
+									modelList[0].setting
 										.isSupportPreheat
 								"
 								active-color="#66DCA5"
@@ -125,14 +127,14 @@
 						<div class="subtitle">
 							Times：<span
 								:style="
-									modelList[curveModel].setting
+									modelList[0].setting
 										.isSupportPreheat
 										? 'color:#6649C4'
 										: 'color:#555555'
 								"
 								>{{
 									(
-										modelList[curveModel].setting
+										modelList[0].setting
 											.preheatTime / 1000
 									).toFixed(1)
 								}}s</span
@@ -142,16 +144,17 @@
 						<div class="times-item">
 							<van-slider
 								v-model="
-									modelList[curveModel].setting.preheatTime
+									modelList[0].setting.preheatTime
 								"
 								min="1000"
 								max="10000"
+              @change="onClickModelItem(0)"
 								:step="500"
 								bar-height="4px"
 								active-color="#6649C4"
 								inactive-color="#FFFFFF"
 								:disabled="
-									!modelList[curveModel].setting
+									!modelList[0].setting
 										.isSupportPreheat
 								"
 							>
@@ -159,7 +162,7 @@
 									<img
 										class="slider-button"
 										:src="
-											modelList[curveModel].setting
+											modelList[0].setting
 												.isSupportPreheat
 												? require('@/assets/icons/icon_slider_button_vertical.png')
 												: require('@/assets/icons/icon_slider_button_vertical_disabled.png')
@@ -175,14 +178,14 @@
 						<div class="subtitle">
 							Voltage：<span
 								:style="
-									modelList[curveModel].setting
+									modelList[0].setting
 										.isSupportPreheat
 										? 'color:#6649C4'
 										: 'color:#555555'
 								"
 								>{{
 									(
-										modelList[curveModel].setting
+										modelList[0].setting
 											.preheatVoltage / 1000
 									).toFixed(1)
 								}}v</span
@@ -193,7 +196,7 @@
 						<div class="voltage-item">
 							<van-slider
 								v-model="
-									modelList[curveModel].setting.preheatVoltage
+									modelList[0].setting.preheatVoltage
 								"
 								min="100"
 								max="4200"
@@ -202,7 +205,7 @@
 								active-color="#6649C4"
 								inactive-color="#FFFFFF"
 								:disabled="
-									!modelList[curveModel].setting
+									!modelList[0].setting
 										.isSupportPreheat
 								"
 							>
@@ -210,7 +213,7 @@
 									<img
 										class="slider-button"
 										:src="
-											modelList[curveModel].setting
+											modelList[0].setting
 												.isSupportPreheat
 												? require('@/assets/icons/icon_slider_button_vertical.png')
 												: require('@/assets/icons/icon_slider_button_vertical_disabled.png')
@@ -228,7 +231,8 @@
 						<div class="title">NFC Settings</div>
 						<van-switch
 							class="nfc-switch"
-							v-model="modelList[curveModel].setting.isSupportNfc"
+              @change="onClickModelItem(0)"
+							v-model="modelList[0].setting.isSupportNfc"
 							active-color="#66DCA5"
 							inactive-color="#D6CDF2"
 							size="20"
@@ -364,7 +368,23 @@ export default {
 		},
 		onClickModelItem(index) {
 			this.curveModel = index
+			Object.assign(
+				this.modelList[0].setting,
+				this.modelList[index].setting
+			)
+			const origin = this.modelList[0].setting.diyVoltage
+			this.modelList[0].setting.diyVoltage = [].concat(origin)
 		},
+
+		onTouchmoveVoltage(e) {},
+
+		onChangeVoltageCurve(index) {
+			if (this.curveModel !== 0) {
+				this.curveModel = 0
+				this.$refs.modelSelect.scrollTo(0, 0)
+			}
+		},
+
 		onClickSave() {
 			if (this.modelList.length >= 6) {
 				this.$toast({
@@ -394,9 +414,9 @@ export default {
 			}
 
 			const writerSetting = new WriterSetting()
-			Object.extends(
-				writerSetting,
-				this.modelList[this.curveModel].setting
+			Object.assign(writerSetting, this.diySetting)
+			writerSetting.diyVoltage = writerSetting.diyVoltage.map((item) =>
+				Math.abs(item)
 			)
 			bluetoothRepository.writeToWriter(writerSetting)
 		},
@@ -409,19 +429,12 @@ export default {
 				this.myChart.setOption(voltageData, true)
 			}
 		},
-		onTouchmoveVoltage(e) {},
-		onChangeVoltageCurve(index) {
-			if (this.curveModel !== 0) {
-				this.curveModel = 0
-				this.$refs.modelSelect.scrollTo(0, 0)
-			}
-			// this.refreshVoltageCurve();
-		},
-		//刷新echarts
-		refreshVoltageCurve() {
-			voltageData.series[0].data = this.voltageNewData
-			this.myChart.setOption(voltageData, true)
-		},
+		// this.refreshVoltageCurve();
+	},
+	//刷新echarts
+	refreshVoltageCurve() {
+		// voltageData.series[0].data = this.voltageNewData;
+		// this.myChart.setOption(voltageData, true);
 	},
 }
 </script>
@@ -455,7 +468,7 @@ export default {
 			height: 30px;
 		}
 		.header-title {
-			font-size: 20px;
+			font-size: 22px;
 			font-weight: 400;
 			color: #ffffff;
 		}

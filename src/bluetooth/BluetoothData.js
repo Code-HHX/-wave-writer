@@ -75,7 +75,7 @@ export class PreheatTemperatureAndTime {
 
 export class WriterSetting {
   isSupportNfc = false; //nfc开关  是正的，1是打开，0是关闭，默认关闭  u8类型
-  isSupportPreheat = false; //预热开关  是正的，1是打开，0是关闭，默认关闭 u8类型
+  isSupportPreheat = true; //预热开关  是正的，1是打开，0是关闭，默认关闭 u8类型
   preheatVoltage = 1800; //默认默认1.8V u16类型 1.8 * 1000
   preheatCount = 3; //默认3 u8类型
   preheatTime = 3000; //默认3秒   u16类型  3 * 1000
@@ -84,7 +84,7 @@ export class WriterSetting {
   micSensitivity = 60; //默认60  u8类型
   touchSensitivity = 100; //默认100  u8类型
   writeLimit = 0; // allcnt 限制烧录多少个设备  u16类型
-  versionFeature; //功能特性 1,2,3,4,5 ，5为全功能   u8类型
+  versionFeature = 4; //功能特性 1,2,3,4,5 ，5为全功能   u8类型
 
   constructor(dataView) {
     if (dataView instanceof DataView) {
@@ -225,4 +225,3 @@ export class LocalCurve {
     this.diyName = diyName;
   }
 }
-

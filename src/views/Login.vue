@@ -10,6 +10,7 @@
         type="text"
         v-model="email"
         placeholder="Email"
+        maxlength="30"
       />
       <input
         ref="email"
@@ -17,6 +18,8 @@
         type="password"
         v-model="pwd"
         placeholder="Password"
+        minlength="6"
+        maxlength="20"
       />
       <div class="forgot">Forgot password?</div>
       <button class="button-login" @click="onClickLogin" v-waves>
@@ -24,6 +27,21 @@
       </button>
       <div class="apply">No account?&nbsp;<span>Apply&nbsp;></span></div>
     </div>
+    <!-- Tips提示 -->
+    <van-popup
+      class="tips-popup"
+      v-model="showTips"
+      round
+      :style="{ width: '88%' }"
+    >
+      <div class="header">Tips</div>
+      <div class="content">
+        <div class="content-msg">{{ tipsMsg }}</div>
+        <button class="content-button" @click="onClickTipsOK" v-waves>
+          OK
+        </button>
+      </div>
+    </van-popup>
   </div>
 </template>
 
@@ -33,7 +51,9 @@ export default {
   data() {
     return {
       email: "",
-      pwd: ""
+      pwd: "",
+      showTips: false,
+      tipsMsg: ""
     };
   },
   created() {},
@@ -41,7 +61,30 @@ export default {
   computed: {},
   methods: {
     onClickLogin() {
+      if (this.$utils.isNullAndEmpty(this.email)) {
+        this.tipsMsg = "E-mail cannot be empty.";
+        this.showTips = true;
+        return;
+      }
+      if (this.$utils.isNullAndEmpty(this.pwd)) {
+        this.tipsMsg = "Password cannot be empty.";
+        this.showTips = true;
+        return;
+      }
+      if (!this.$utils.isEmail(this.email)) {
+        this.tipsMsg = "Please enter the correct E-mail.";
+        this.showTips = true;
+        return;
+      }
+      if (this.pwd.length < 6) {
+        this.tipsMsg = "Please enter the correct Password.";
+        this.showTips = true;
+        return;
+      }
       this.$router.replace("Home");
+    },
+    onClickTipsOK() {
+      this.showTips = false;
     }
   }
 };
@@ -90,6 +133,32 @@ export default {
 
       span {
         color: #ffffff;
+      }
+    }
+  }
+
+  .tips-popup {
+    .header {
+      font-size: 18px;
+      font-weight: bold;
+      color: #555555;
+      padding: 15px 0;
+      border-bottom: 1px solid #eeeeee;
+    }
+
+    .content {
+      padding: 20px 23px 15px 23px;
+      font-size: 18px;
+      font-weight: 400;
+      color: #555555;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .content-button {
+        margin-top: 30px;
+        background: #f1edff;
+        width: 100%;
       }
     }
   }
