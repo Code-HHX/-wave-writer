@@ -47,7 +47,11 @@
           </div>
           <div class="model-mask"></div>
         </div>
-        <img class="setting" src="@/assets/icons/icon_setting.png" />
+        <img
+          class="setting"
+          src="@/assets/icons/icon_setting.png"
+          @click="onClickSetting"
+        />
       </div>
       <div class="content-main">
         <div class="main-header">
@@ -58,7 +62,6 @@
             type="default"
             :disabled="saveDisabled"
             @click="onClickSave"
-            v-waves
             >Save</van-button
           >
         </div>
@@ -224,6 +227,7 @@
         <img
           class="footer-setting"
           src="@/assets/icons/icon_footer_setting.png"
+          @click="onClickSettingsView"
         />
         <img
           class="footer-upload"
@@ -398,7 +402,9 @@ export default {
       const origin = this.modelList[0].setting.diyVoltage;
       this.modelList[0].setting.diyVoltage = [].concat(origin);
     },
-
+    onClickSetting() {
+      this.$router.push("Settings");
+    },
     onTouchmoveVoltage(e) {},
 
     onChangeVoltageCurve(index) {
@@ -427,6 +433,9 @@ export default {
       } else {
         bluetoothRepository.startPair();
       }
+    },
+    onClickSettingsView() {
+      this.$router.push("SettingsView");
     },
     onClickUpload() {
       if (!this.isConnected) {
@@ -472,6 +481,7 @@ export default {
     },
     onClickSaveSure() {
       this.showSavePopup = false;
+      this.$router.push("Settings");
     },
     onClickHistory() {
       this.$router.push("History");
@@ -539,7 +549,6 @@ export default {
       .model-select {
         display: flex;
         width: 88%;
-        overflow: hidden;
         overflow-x: auto;
 
         .model-item {
@@ -584,8 +593,8 @@ export default {
         }
 
         .model-mask {
-          position: fixed;
-          margin-left: 74%;
+          position: absolute;
+          right: 50px;
           width: 30px;
           height: 77px;
           background: linear-gradient(
@@ -594,7 +603,6 @@ export default {
             #6649c4 38%,
             #6649c4 100%
           );
-          border-radius: 0px 0px 0px 0px;
         }
       }
 
@@ -807,7 +815,7 @@ export default {
   }
 
   .footer {
-    position: fixed;
+    position: absolute;
     bottom: 0;
     background-repeat: no-repeat;
     background-position: center center;

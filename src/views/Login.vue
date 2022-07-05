@@ -22,9 +22,14 @@
         maxlength="20"
       />
       <div class="forgot">Forgot password?</div>
-      <button class="button-login" @click="onClickLogin" v-waves>
+      <van-button
+        class="button-login"
+        type="default"
+        @click="onClickLogin"
+        v-waves
+      >
         Log in
-      </button>
+      </van-button>
       <div class="apply">No account?&nbsp;<span>Apply&nbsp;></span></div>
     </div>
     <!-- Tips提示 -->
@@ -37,9 +42,14 @@
       <div class="header">Tips</div>
       <div class="content">
         <div class="content-msg">{{ tipsMsg }}</div>
-        <button class="content-button" @click="onClickTipsOK" v-waves>
+        <van-button
+          type="default"
+          class="content-button"
+          @click="onClickTipsOK"
+          v-waves
+        >
           OK
-        </button>
+        </van-button>
       </div>
     </van-popup>
   </div>
@@ -115,6 +125,15 @@ export default {
       margin: 15px 0;
     }
 
+    .button-login {
+      border-radius: 8px;
+      border: none;
+      background: #ffffff;
+      color: #6649c4;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
     .forgot {
       font-size: 18px;
       font-weight: normal;
@@ -159,6 +178,9 @@ export default {
         margin-top: 30px;
         background: #f1edff;
         width: 100%;
+        border: none;
+        border-radius: 8px;
+        color: #6649c4;
       }
     }
   }

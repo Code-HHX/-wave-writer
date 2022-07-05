@@ -34,6 +34,20 @@ export const routes = [
     auth: false //是否登录鉴权
   },
   {
+    path: "/Settings",
+    name: "Settings",
+    component: () => import("@/views/Settings.vue"),
+    meta: {},
+    auth: false //是否登录鉴权
+  },
+  {
+    path: "/SettingsView",
+    name: "SettingsView",
+    component: () => import("@/views/SettingsView.vue"),
+    meta: {},
+    auth: false //是否登录鉴权
+  },
+  {
     path: "*",
     redirect: {
       name: "Home"

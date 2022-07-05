@@ -93,4 +93,33 @@ button {
 button:focus {
   outline: none;
 }
+.item-split {
+  width: 100%;
+  border-bottom: 1px solid #eeeeee;
+}
+
+* {
+  scrollbar-width: none; /* firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0px;
+    height: 0px;
+  }
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  &::-webkit-scrollbar-track {
+    background-color: none;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: none;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: none;
+  }
+  &::-webkit-scrollbar-thumb:active {
+    background-color: none;
+  }
+}
 </style>
