@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import store from "@/store";
+
 export default {
   name: "Login",
   data() {
@@ -67,7 +69,12 @@ export default {
     };
   },
   created() {},
-  mounted() {},
+  mounted() {
+    if (process.env.NODE_ENV === "dev") {
+      this.email = "ikrusher";
+      this.pwd = "123456";
+    }
+  },
   computed: {},
   methods: {
     onClickLogin() {
@@ -81,17 +88,23 @@ export default {
         this.showTips = true;
         return;
       }
-      if (!this.$utils.isEmail(this.email)) {
-        this.tipsMsg = "Please enter the correct E-mail.";
-        this.showTips = true;
-        return;
-      }
+      // if (!this.$utils.isEmail(this.email)) {
+      //   this.tipsMsg = "Please enter the correct E-mail.";
+      //   this.showTips = true;
+      //   return;
+      // }
       if (this.pwd.length < 6) {
         this.tipsMsg = "Please enter the correct Password.";
         this.showTips = true;
         return;
       }
-      this.$router.replace("Home");
+
+      store.dispatch("login", {
+        userName: this.email,
+        password: this.pwd
+      });
+
+      // this.$router.replace("Home");
     },
     onClickTipsOK() {
       this.showTips = false;

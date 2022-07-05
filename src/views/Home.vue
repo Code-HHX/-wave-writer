@@ -36,7 +36,7 @@
             v-for="(item, index) in modelList"
             :key="index"
           >
-            {{ item.text }}
+            {{ item.modeName }}
             <div
               class="model-button"
               :class="curveModel === index ? 'model-button-active' : ''"
@@ -70,7 +70,7 @@
         <div class="voltage-one">
           <div
             class="voltage-number"
-            v-for="(item, index) in diyVoltage"
+            v-for="(item, index) in modelList[curveModel].diyVoltage"
             :key="index"
           >
             {{ Math.abs(item / 1000).toFixed(1) }}v
@@ -83,9 +83,9 @@
           @touchmove.prevent="onTouchmoveVoltage"
         >
           <van-slider
-            v-for="(value, index) in diyVoltage"
+            v-for="(value, index) in modelList[curveModel].diyVoltage"
             :key="index"
-            v-model="modelList[0].setting.diyVoltage[index]"
+            v-model="modelList[0].diyVoltage[index]"
             vertical
             min="-4200"
             max="-100"
@@ -115,7 +115,7 @@
               <van-switch
                 @change="onClickModelItem(0)"
                 class="preheat-switch"
-                v-model="modelList[0].setting.isSupportPreheat"
+                v-model="modelList[0].isSupportPreheat"
                 active-color="#66DCA5"
                 inactive-color="#D6CDF2"
                 size="20"
@@ -124,19 +124,17 @@
             <div class="subtitle">
               Times：<span
                 :style="
-                  modelList[0].setting.isSupportPreheat
+                  modelList[0].isSupportPreheat
                     ? 'color:#6649C4'
                     : 'color:#555555'
                 "
-                >{{
-                  (modelList[0].setting.preheatTime / 1000).toFixed(1)
-                }}s</span
+                >{{ (modelList[0].preheatTime / 1000).toFixed(1) }}s</span
               >
             </div>
             <!--预热时间-->
             <div class="times-item">
               <van-slider
-                v-model="modelList[0].setting.preheatTime"
+                v-model="modelList[0].preheatTime"
                 min="1000"
                 max="10000"
                 @change="onClickModelItem(0)"
@@ -144,13 +142,13 @@
                 bar-height="4px"
                 active-color="#6649C4"
                 inactive-color="#FFFFFF"
-                :disabled="!modelList[0].setting.isSupportPreheat"
+                :disabled="!modelList[0].isSupportPreheat"
               >
                 <template #button>
                   <img
                     class="slider-button"
                     :src="
-                      modelList[0].setting.isSupportPreheat
+                      modelList[0].isSupportPreheat
                         ? require('@/assets/icons/icon_slider_button_vertical.png')
                         : require('@/assets/icons/icon_slider_button_vertical_disabled.png')
                     "
@@ -165,33 +163,31 @@
             <div class="subtitle">
               Voltage：<span
                 :style="
-                  modelList[0].setting.isSupportPreheat
+                  modelList[0].isSupportPreheat
                     ? 'color:#6649C4'
                     : 'color:#555555'
                 "
-                >{{
-                  (modelList[0].setting.preheatVoltage / 1000).toFixed(1)
-                }}v</span
+                >{{ (modelList[0].preheatVoltage / 1000).toFixed(1) }}v</span
               >
             </div>
 
             <!--预热电压-->
             <div class="voltage-item">
               <van-slider
-                v-model="modelList[0].setting.preheatVoltage"
+                v-model="modelList[0].preheatVoltage"
                 min="100"
                 max="4200"
                 :step="100"
                 bar-height="4px"
                 active-color="#6649C4"
                 inactive-color="#FFFFFF"
-                :disabled="!modelList[0].setting.isSupportPreheat"
+                :disabled="!modelList[0].isSupportPreheat"
               >
                 <template #button>
                   <img
                     class="slider-button"
                     :src="
-                      modelList[0].setting.isSupportPreheat
+                      modelList[0].isSupportPreheat
                         ? require('@/assets/icons/icon_slider_button_vertical.png')
                         : require('@/assets/icons/icon_slider_button_vertical_disabled.png')
                     "
@@ -209,7 +205,7 @@
             <van-switch
               class="nfc-switch"
               @change="onClickModelItem(0)"
-              v-model="modelList[0].setting.isSupportNfc"
+              v-model="modelList[0].isSupportNfc"
               active-color="#66DCA5"
               inactive-color="#D6CDF2"
               size="20"
@@ -338,20 +334,16 @@ import { WriterSetting } from "@/bluetooth/BluetoothData";
 import { mapState } from "vuex";
 import bluetoothRepository from "@/bluetooth/BluetoothRepository";
 
+import store from "@/store";
 import log from "@/util/log";
+import api from "@/api";
 
 export default {
   name: "Home",
   data() {
     return {
       curveModel: 0,
-      modelList: [
-        { text: "DIY", setting: new WriterSetting() },
-        { text: "Current", setting: new WriterSetting() },
-        { text: "Strong", setting: new WriterSetting() },
-        { text: "Soul fly", setting: new WriterSetting() },
-        { text: "Style", setting: new WriterSetting() }
-      ],
+      modelList: [],
       myChart: {},
       showMenuPopup: false,
       showDisconnectPopup: false,
@@ -359,25 +351,37 @@ export default {
     };
   },
   created() {},
-  mounted() {
+  async mounted() {
     // this.myChart = echarts.init(document.getElementById("voltageOne"));
     // window.addEventListener("resize", () => {
     //   this.myChart.resize();
     // });
     // this.getVoltageOne();
-  },
-  watch: {
-    diyVoltage(newValue, oldValue) {
-      log(`数据改变了 ${newValue}`);
-    }
+
+    const diySetting = new WriterSetting();
+    diySetting.modeName = "DIY";
+    this.modelList = [diySetting];
+    let curveModes = await api.writer.curveModes();
+    this.modelList = [diySetting].concat(
+      curveModes.map(item => {
+        const setting = new WriterSetting();
+        setting.id = item.id;
+        setting.diyVoltage = item.heatingVoltage
+          .split(",")
+          .map(item => parseInt(item) * -1);
+        setting.isSupportNfc = item.nfcSettings;
+        setting.isSupportPreheat = item.preheatSetting;
+        setting.modeName = item.modeName;
+        setting.preheatTime = item.preheatTime;
+        setting.preheatVoltage = item.preheatVoltage;
+        return setting;
+      })
+    );
   },
   computed: {
     ...mapState({
       isConnected: state => state.bluetooth.isConnected
     }),
-    diyVoltage() {
-      return this.modelList[this.curveModel].setting.diyVoltage;
-    },
     saveDisabled() {
       if (this.curveModel === 0) {
         return false;
@@ -398,9 +402,9 @@ export default {
     },
     onClickModelItem(index) {
       this.curveModel = index;
-      Object.assign(this.modelList[0].setting, this.modelList[index].setting);
-      const origin = this.modelList[0].setting.diyVoltage;
-      this.modelList[0].setting.diyVoltage = [].concat(origin);
+      Object.assign(this.modelList[0], this.modelList[index]);
+      const origin = this.modelList[0].diyVoltage;
+      this.modelList[0].diyVoltage = [].concat(origin);
     },
     onClickSetting() {
       this.$router.push("Settings");

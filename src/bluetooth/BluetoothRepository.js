@@ -434,6 +434,23 @@ class BluetoothRepository {
         this.didReconnectDevice.bind(this)
       );
     }
+
+    if (navigator.bluetooth && navigator.bluetooth.addEventListener) {
+      navigator.bluetooth.addEventListener(
+        "receiveScanDevice",
+        this.onReceiveScanDevice.bind(this)
+      );
+    }
+  }
+
+  async onReceiveScanDevice(e) {
+    const deviceList = e.target;
+    log(`device list = ${deviceList}`);
+
+    store.commit(
+      `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_SCAN_DEVICE_LIST}`,
+      deviceList
+    );
   }
 
   async didReconnectDevice(e) {
@@ -444,9 +461,6 @@ class BluetoothRepository {
       );
     }
     let device = e.target;
-    this.device = device;
-    //监听设备的连接状态
-    device.addEventListener("gattserverdisconnected", this._didDidconnectEvent);
 
     await this.connectDevice(device);
   }
@@ -490,8 +504,13 @@ class BluetoothRepository {
 
   async startPair(callback) {
     this.disconnect();
-
-    let device = await navigator.bluetooth.requestDevice({
+    let bluetooth;
+    if (navigator.bluetooth2) {
+      bluetooth = navigator.bluetooth2;
+    } else {
+      bluetooth = navigator.bluetooth;
+    }
+    const device = await bluetooth.requestDevice({
       filters: [{ namePrefix: "HB" }],
       optionalServices: [
         DEVICE_READ_SERVICE_UUID,
@@ -500,6 +519,7 @@ class BluetoothRepository {
       ],
       token: window.localStorage.getItem("omin-token")
     });
+
     this.device = device;
     this.connectDevice(device);
   }
@@ -518,14 +538,20 @@ class BluetoothRepository {
     );
   }
 
-  async connectDevice(device) {
+  async connectDevice(device, isDirectConnect = false) {
+    this.device = device;
+    //监听设备的连接状态
     device.removeEventListener(
       "gattserverdisconnected",
       this._didDidconnectEvent
     );
     device.addEventListener("gattserverdisconnected", this._didDidconnectEvent);
 
-    this._server = await device.gatt.connect();
+    if (isDirectConnect) {
+      this._server = await device.gatt.directConnect();
+    } else {
+      this._server = await device.gatt.connect();
+    }
 
     log(`device name = ${device.name}`);
 
@@ -533,7 +559,10 @@ class BluetoothRepository {
     //     this._server.disconnect()
     //     return
     // }
-    store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DEVICE_NAME}`, device.name);
+    store.commit(
+      `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DEVICE_NAME}`,
+      device.name
+    );
 
     //缓存好service
     this._cacheServices.readService = await this._server.getPrimaryService(
@@ -837,7 +866,10 @@ class BluetoothRepository {
               break;
             case 0xba: //电量百分比
               // console.log(`电量百分比: ${ret}`)
-              store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.COMMIT_BATTERY_CHANGED}`, ret);
+              store.commit(
+                `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.COMMIT_BATTERY_CHANGED}`,
+                ret
+              );
               break;
             default:
               if (this._isFire) {
@@ -925,7 +957,10 @@ class BluetoothRepository {
       case COMMAND_BATCH_ID: {
         const batchId = dataView.getUint32(realData, true);
         log(`批次号：${batchId}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_BATCH_ID}`, batchId);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_BATCH_ID}`,
+          batchId
+        );
         break;
       }
       case COMMAND_POD_ID: {
@@ -935,7 +970,10 @@ class BluetoothRepository {
         }
         const podId = podIdHex.join("").toUpperCase();
         log(`烟弹id：${podId}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_POD_ID}`, podId);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_POD_ID}`,
+          podId
+        );
         // if (this._lastPodId !== '' && this._lastPodId !== podId) {
         //   //更换了不同的烟弹
         //
@@ -946,7 +984,10 @@ class BluetoothRepository {
       case COMMAND_OIL: {
         const oilType = dataView.getUint8(0);
         log(`烟油类型：${oilType}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_OIL_TYPE}`, oilType);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_OIL_TYPE}`,
+          oilType
+        );
         break;
       }
       case COMMAND_BRAND: {
@@ -988,7 +1029,10 @@ class BluetoothRepository {
       case COMMAND_MAX_SECOND: {
         const maxSecond = dataView.getUint16(0, true);
         log(`最大秒数：${maxSecond}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_MAX_PUFF}`, maxSecond);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_MAX_PUFF}`,
+          maxSecond
+        );
         break;
       }
       case COMMAND_THICKNESS: {
@@ -1000,7 +1044,10 @@ class BluetoothRepository {
       case COMMAND_CARTRIDGE_FLAG: {
         const cartridgeFlag = dataView.getUint16(0, true);
         log(`烟弹标识：${cartridgeFlag}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_CARTRIDGE_FLAG}`, cartridgeFlag);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_CARTRIDGE_FLAG}`,
+          cartridgeFlag
+        );
         break;
       }
       case COMMAND_OIL_CONTENT: {
@@ -1046,10 +1093,13 @@ class BluetoothRepository {
         log(
           `预热温度：${preheatTemperatureAndTime.preheatTemperature} 预热时间:${preheatTemperatureAndTime.preheatSecond}`
         );
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_PREHEAT}`, {
-          time: preheatTemperatureAndTime.preheatSecond,
-          temperature: preheatTemperatureAndTime.preheatTemperature
-        });
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_PREHEAT}`,
+          {
+            time: preheatTemperatureAndTime.preheatSecond,
+            temperature: preheatTemperatureAndTime.preheatTemperature
+          }
+        );
         break;
       }
       case COMMAND_PREHEAT_NAME: {
@@ -1065,7 +1115,10 @@ class BluetoothRepository {
         }
 
         if (isAllZero) {
-          store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_PREHEAT_NAME}`, "");
+          store.commit(
+            `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_PREHEAT_NAME}`,
+            ""
+          );
         } else {
           let endStringIndex = -1;
           for (let i = 0; i < preheatNameLength; i++) {
@@ -1079,7 +1132,10 @@ class BluetoothRepository {
             dataView.buffer.slice(0, endStringIndex)
           ).toString("utf-8");
           log(`预热名称:${preheatName}`);
-          store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_PREHEAT}`, preheatName);
+          store.commit(
+            `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_PREHEAT}`,
+            preheatName
+          );
         }
         break;
       }
@@ -1091,10 +1147,13 @@ class BluetoothRepository {
             item => item.y
           )}`
         );
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DIY}`, {
-          time: diyTemperatureAndTime.diyTime,
-          secondTemperature: diyTemperatureAndTime.secondTemperature
-        });
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DIY}`,
+          {
+            time: diyTemperatureAndTime.diyTime,
+            secondTemperature: diyTemperatureAndTime.secondTemperature
+          }
+        );
         break;
       }
       case COMMAND_DIY_TEMPERATURE_NAME:
@@ -1111,7 +1170,10 @@ class BluetoothRepository {
           }
           if (isAllZero) {
             log(`diy温度名称:空`);
-            store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DIY_NAME}`, "");
+            store.commit(
+              `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DIY_NAME}`,
+              ""
+            );
           } else {
             let endDiyTemperatureNameIndex = -1;
             for (let i = 0; i < diyTemperatureNameLength; i++) {
@@ -1144,44 +1206,65 @@ class BluetoothRepository {
       case COMMAND_HUB_PARAMS: {
         const writerSetting = new WriterSetting(dataView);
         writerSetting.toString();
-        // store.commit("setDisposableSetting", writerSetting);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_CURRENT_HUB_SETTING}`,
+          writerSetting
+        );
         break;
       }
       case COMMAND_DEVICE_ID_PARAMS: {
         const deviceId = new DeviceId(dataView);
         deviceId.toString();
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DEVICE_ID}`, deviceId);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DEVICE_ID}`,
+          deviceId
+        );
 
         break;
       }
       case COMMAND_CARTRIDGE_TOTAL_COUNT: {
         const totalCount = dataView.getUint16(0, true);
         log(`总吸烟口数：${totalCount}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_CURRENT_PUFF}`, totalCount);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_CURRENT_PUFF}`,
+          totalCount
+        );
         break;
       }
       case COMMAND_CARTRIDGE_TOTAL_SECOND: {
         const totalSecond = dataView.getUint16(0, true);
         log(`总吸烟秒数：${totalSecond}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_TOTAL_SECONDS}`, totalSecond);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_TOTAL_SECONDS}`,
+          totalSecond
+        );
         break;
       }
       case COMMAND_CARTRIDGE_TODAY_PUFF: {
         const todayPuff = dataView.getUint16(0, true);
         log(`当天吸烟口数：${todayPuff}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_TODAY_PUFF}`, todayPuff);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_TODAY_PUFF}`,
+          todayPuff
+        );
         break;
       }
       case COMMAND_CARTRIDGE_USAGE_SECOND: {
         const usageSecond = dataView.getUint16(0, true);
         log(`当前使用的秒数：${usageSecond}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_USAGE_SECONDS}`, usageSecond);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_USAGE_SECONDS}`,
+          usageSecond
+        );
         break;
       }
       case COMMAND_CARTRIDGE_TODAY_SECOND: {
         const todaySecond = dataView.getUint16(0, true);
         log(`当天吸烟秒数：${todaySecond}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_TODAY_SECONDS}`, todaySecond);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_TODAY_SECONDS}`,
+          todaySecond
+        );
         break;
       }
       case COMMAND_CARTRIDGE_REAL_TEMPERATURE: {
@@ -1205,20 +1288,29 @@ class BluetoothRepository {
       case COMMAND_CARTRIDGE_ACTIVE_TIME: {
         const activeTime = dataView.getUint16(0, true);
         log(`激活时间：${activeTime}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_ACTIVE_TIME}`, activeTime);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_ACTIVE_TIME}`,
+          activeTime
+        );
         break;
       }
       case COMMAND_DEVICE_HW_VERSION: {
         const hwVersion = Buffer.from(dataView.buffer).toString("utf-8");
         log(`硬件版本：${hwVersion}`);
         this.uploadDeviceInfo(hwVersion);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DEVICE_VERSION}`, hwVersion);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_DEVICE_VERSION}`,
+          hwVersion
+        );
         break;
       }
       case COMMAND_DEVICE_BT_VERSION: {
         const btVersion = Buffer.from(dataView.buffer).toString("utf-8");
         log(`蓝牙版本：${btVersion}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_BLUETOOTH_VERSION}`, btVersion);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_BLUETOOTH_VERSION}`,
+          btVersion
+        );
         break;
       }
       case COMMAND_DEVICE_IS_INSERT_CARTRIDGE: {
@@ -1247,7 +1339,10 @@ class BluetoothRepository {
       case COMMAND_DEVICE_IS_OUTPUT_MODE: {
         const outputMode = dataView.getUint8(0);
         log(`输出模式：${outputMode}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_FIRE_MODE}`, outputMode);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_FIRE_MODE}`,
+          outputMode
+        );
         break;
       }
       case COMMAND_DEVICE_IS_LOCK: {
@@ -1267,7 +1362,10 @@ class BluetoothRepository {
       case COMMAND_DEVICE_BATTERY: {
         const battery = dataView.getUint8(0);
         log(`电池百分比：${battery}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_BATTERY}`, battery);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_BATTERY}`,
+          battery
+        );
         break;
       }
       case COMMAND_DEVICE_MAC_ADDRESS: {
@@ -1282,7 +1380,10 @@ class BluetoothRepository {
 
         this.macAddress = macAddress.join(":").toLocaleUpperCase();
         log(`蓝牙地址：${this.macAddress}`);
-        store.commit(`${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_MAC_ADDRESS}`, this.macAddress);
+        store.commit(
+          `${BLUETOOTH_MODULE_NAME}${StoreType.COMMIT_TYPE.STATE_MAC_ADDRESS}`,
+          this.macAddress
+        );
         break;
       }
       case COMMAND_DEVICE_ENCRYPT_TYPE: {

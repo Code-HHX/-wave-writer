@@ -6,6 +6,10 @@
  * @Description: api 统一出口
  */
 
-const api = {};
+
+import user from "@/api/user";
+import writer from "@/api/writer";
+
+const api = { user, writer };
 
 export default api;

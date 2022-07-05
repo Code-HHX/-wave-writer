@@ -72,6 +72,9 @@ export const STATE_CURRENT_HUB_SETTING = "current_hub_setting"; //预设参数�
 export const STATE_DEVICE_ID = "device_id"; //预设参数是否改变
 export const STATE_IS_DEVICE_SUPPORT_READ = "is_device_support_read"; //预设参数是否改变
 
+
+export const STATE_SCAN_DEVICE_LIST = "scan_device_list"; //扫描的蓝牙
+
 export default {
   ConnectState: {
     CONNECT_STATE_DISCONNECTED,
@@ -134,7 +137,8 @@ export default {
     STATE_CURRENT_WRITER_SETTING,
     STATE_CURRENT_HUB_SETTING,
     STATE_DEVICE_ID,
-    STATE_IS_DEVICE_SUPPORT_READ
+    STATE_IS_DEVICE_SUPPORT_READ,
+    STATE_SCAN_DEVICE_LIST
   },
   PREHEAT_TYPE: {
     PREHEAT_STATUS_ENTER_PREHEAT,

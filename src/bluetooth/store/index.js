@@ -2,7 +2,20 @@ import bluetoothRepository from "@/bluetooth/BluetoothRepository";
 import router from "@/router";
 import StoreType from "./StoreType";
 import { DeviceId, WriterSetting } from "../BluetoothData";
-
+const BRAND_PRODUCT_MAP = {
+  0: {
+    3: "GDC",
+    4: "stem2"
+  },
+  1: {
+    3: "UZO",
+    4: "NORD",
+    5: "TIK"
+  },
+  2: {
+    3: "ALLY"
+  }
+};
 export const BluetoothStore = {
   namespaced: true,
   state: () => ({
@@ -67,10 +80,12 @@ export const BluetoothStore = {
     presets: [],
     isPresetChanged: false,
     presetName: "PRESETS",
+    hubSetting: null,
     writerSetting: null,
     deviceId: new DeviceId(),
     isDeviceSupportRead: false,
-    insertDeviceName: "Device"
+    insertDeviceName: "Device",
+    deviceList: []
   }),
   mutations: {
     [StoreType.COMMIT_TYPE.STATE_CONNECT_STATE](state, payload) {
@@ -234,26 +249,45 @@ export const BluetoothStore = {
     [StoreType.COMMIT_TYPE.STATE_CURRENT_WRITER_SETTING](state, payload) {
       state.writerSetting = payload;
     },
+    [StoreType.COMMIT_TYPE.STATE_CURRENT_HUB_SETTING](state, payload) {
+      state.hubSetting = payload;
+    },
     [StoreType.COMMIT_TYPE.STATE_PRESET_IS_CHANGED](state, payload) {
       state.isPresetChanged = payload;
     },
     [StoreType.COMMIT_TYPE.STATE_DEVICE_ID](state, payload) {
       state.deviceId = payload;
-      if (payload.productManufacture === 0x01) {
-        switch (payload.productNumber ) {
-          case 3: //uzo
-            state.insertDeviceName = "UZO";
-            break;
-          case 4: //nord
-            state.insertDeviceName = "NORD";
-            break;
-          default:
-            state.insertDeviceName = "Device";
-            break;
-        }
-      } else {
-        state.insertDeviceName = "Device";
+      // const productManufacture = payload.productManufacture
+      // if (productManufacture === 0x01) {
+      //   switch (payload.productNumber) {
+      //     case 3: //uzo
+      //       state.insertDeviceName = "UZO";
+      //       break;
+      //     case 4: //nord
+      //       state.insertDeviceName = "NORD";
+      //       break;
+      //     default:
+      //       state.insertDeviceName = "Device";
+      //       break;
+      //   }
+      // } else if (productManufacture == 0x00) {
+      //     switch (payload.productNumber) {
+      //
+      //     }
+      // } else {
+      //   state.insertDeviceName = "Device";
+      // }
+      const productManufacture = BRAND_PRODUCT_MAP[`${payload.productManufacture}`];
+      if (productManufacture) {
+        state.insertDeviceName = "Unknown";
+        return;
       }
+      const productName = productManufacture[`${payload.productNumber}`];
+      if (productManufacture) {
+        state.insertDeviceName = "Unknown";
+        return;
+      }
+      state.insertDeviceName = productName;
     },
     [StoreType.COMMIT_TYPE.STATE_IS_DEVICE_SUPPORT_READ](state, payload) {
       state.isDeviceSupportRead = payload;
@@ -268,6 +302,10 @@ export const BluetoothStore = {
         });
         state.presets = Object.assign([], state.presets);
       }
+    },
+
+    [StoreType.COMMIT_TYPE.STATE_SCAN_DEVICE_LIST](state, payload) {
+      state.deviceList = payload;
     },
 
     setDeviceName(state, payload) {
@@ -370,7 +408,6 @@ export const BluetoothStore = {
     }
   },
   getters: {
-
     getInsertDeviceName(state, getters, rootState) {
       return state.insertDeviceName;
     },
@@ -512,6 +549,13 @@ export const BluetoothStore = {
     },
     deviceId(state, getters, rootState) {
       return state.deviceId;
-    }
+    },
+    getHubSetting(state, getters, rootState) {
+      return new WriterSetting();
+    },
+    getDeviceSetting(state, getters, rootState) {
+      return new WriterSetting();
+    },
+
   }
 };

@@ -8,6 +8,7 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Store from "@/store";
+import { KEY_LOCAL_STORAGE_TOKEN } from "./config/LocalStoreKey";
 
 Vue.use(VueRouter);
 
@@ -23,34 +24,34 @@ export const routes = [
     path: "/Home",
     name: "Home",
     component: () => import("@/views/Home.vue"),
-    meta: {},
+    meta: { auth: true },
     auth: false //是否登录鉴权
   },
   {
     path: "/History",
     name: "History",
     component: () => import("@/views/History.vue"),
-    meta: {},
+    meta: { auth: true },
     auth: false //是否登录鉴权
   },
   {
     path: "/Settings",
     name: "Settings",
     component: () => import("@/views/Settings.vue"),
-    meta: {},
+    meta: { auth: true },
     auth: false //是否登录鉴权
   },
   {
     path: "/SettingsView",
     name: "SettingsView",
     component: () => import("@/views/SettingsView.vue"),
-    meta: {},
+    meta: { auth: true },
     auth: false //是否登录鉴权
   },
   {
     path: "*",
     redirect: {
-      name: "Home"
+      name: "Login"
     }
   }
 ];
@@ -67,8 +68,7 @@ router.beforeEach((to, from, next) => {
   //next往下执行的回调
   //在localStorage中获取token
 
-  let token = window.localStorage.getItem("ikrusher-token");
-  let userInfo = window.localStorage.getItem("userInfo");
+  let token = localStorage.getItem(KEY_LOCAL_STORAGE_TOKEN);
 
   //判断该页面是否需要登录
   if (to.meta.auth) {

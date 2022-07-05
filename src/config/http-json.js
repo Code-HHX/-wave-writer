@@ -8,10 +8,11 @@
 
 import axios from "axios";
 import store from "../store.js";
-
+import { Toast } from "vant";
+import { KEY_LOCAL_STORAGE_TOKEN } from "./LocalStoreKey";
 //封装axios
 axios.defaults.headers["Content-Type"] = "application/json";
-
+let currentTask = [];
 //创建axios实例
 const service = axios.create({
   baseURL:
@@ -27,6 +28,7 @@ const service = axios.create({
 
 //const ASCRIPTION = "ASCRIPTION";
 const TIME_ZONE = "timeZone";
+const TOKEN = "omni-token";
 //const SOURCE = "source";
 
 //http request 拦截器
@@ -34,7 +36,10 @@ service.interceptors.request.use(
   config => {
     //获取token
     //const token = window.localStorage.getItem("token");
-
+    if (currentTask.length === 0) {
+      Toast.loading("Loading...");
+    }
+    currentTask.push(config);
     let timezone = new Date().getTimezoneOffset() / -60;
     if (timezone > 0) {
       timezone = `+${timezone}:00`;
@@ -42,8 +47,10 @@ service.interceptors.request.use(
       timezone = `${timezone}:00`;
     }
     config.headers[TIME_ZONE] = timezone;
-
-    window.console.log(config);
+    let token = localStorage.getItem(KEY_LOCAL_STORAGE_TOKEN);
+    if (token) {
+      config.headers[TOKEN] = token;
+    }
     return config;
   },
   error => {
@@ -54,35 +61,31 @@ service.interceptors.request.use(
 //http response 拦截器
 service.interceptors.response.use(
   response => {
+    currentTask.splice(currentTask.indexOf(response.config), 1);
+    if (currentTask.length === 0) {
+      Toast.clear();
+    }
     const code = response.data.code;
-    if (code === 401) {
-      store.dispatch("tokenExpired");
-    } else if (code === 500) {
-      return null;
-    } else if (code === 404) {
-      return null;
-    } else if (code === 200) {
+    if (code === 200) {
       //接口请求正常 直接返回结果
       return response;
+    } else if (code === 401) {
+      store.dispatch("tokenExpired");
     }
 
+    currentTask.splice(0, currentTask.length);
     //接口请求异常，抛出异常信息
-    // Toast.fail({
-    // 	duration: 2000,
-    // 	message: response.data.message,
-    // 	closeOnClick: false,
-    // 	closeOnClickOverlay: false,
-    // })
-    return Promise.reject(response.data.message);
+    throw new Error(response.data.message);
   },
   error => {
+    currentTask.splice(0, currentTask.length);
     //接口请求异常，抛出异常信息
-    // Toast.fail({
-    // 	duration: 2000,
-    // 	message: error.data.message,
-    // 	closeOnClick: false,
-    // 	closeOnClickOverlay: false,
-    // })
+    Toast.fail({
+      duration: 2000,
+      message: error.data.message,
+      closeOnClick: false,
+      closeOnClickOverlay: false
+    });
     return Promise.reject(error);
   }
 );

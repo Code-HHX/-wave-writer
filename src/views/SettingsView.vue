@@ -14,7 +14,7 @@
       <div class="setting-model">
         <button
           class="model-button"
-          :class="selectModel == 'Hub' ? 'model-button-active' : ''"
+          :class="selectModel === 'Hub' ? 'model-button-active' : ''"
           style="margin-right:8px;"
           @click="onClickSelectModel('Hub')"
         >
@@ -22,7 +22,7 @@
         </button>
         <button
           class="model-button"
-          :class="selectModel == 'Device' ? 'model-button-active' : ''"
+          :class="selectModel === 'Device' ? 'model-button-active' : ''"
           style="margin-left:8px;"
           @click="onClickSelectModel('Device')"
         >
@@ -30,7 +30,7 @@
         </button>
       </div>
       <!-- Hub模式 -->
-      <div v-show="selectModel == 'Hub'" style="overflow-y: auto;">
+      <div v-show="selectModel === 'Hub'" style="overflow-y: auto;">
         <!-- Info -->
         <div class="info-item">
           <div class="info-title">
@@ -44,7 +44,9 @@
             </div>
             <div class="info-row">
               <div class="info-row-left">S/N</div>
-              <div class="info-row-right">0012554563</div>
+              <div class="info-row-right">
+                {{ macAddress.replaceAll(":", "") }}
+              </div>
             </div>
           </div>
         </div>
@@ -54,22 +56,37 @@
             Preheat
             <van-switch
               style="margin-left:auto;"
-              v-model="hubInfo.preheat"
+              v-model="hubSetting.isSupportPreheat"
               active-color="#66DCA5"
               inactive-color="#D6CDF2"
               size="18"
               :disabled="true"
             />
           </div>
-          <div class="item-split" v-show="hubInfo.preheat"></div>
-          <div class="info-content" v-show="hubInfo.preheat">
+          <!--<div class="info-title">-->
+          <!--NFC-->
+          <!--<van-switch-->
+          <!--style="margin-left:auto;"-->
+          <!--v-model="hubSetting.isSupportNfc"-->
+          <!--active-color="#66DCA5"-->
+          <!--inactive-color="#D6CDF2"-->
+          <!--size="18"-->
+          <!--:disabled="true"-->
+          <!--/>-->
+          <!--</div>-->
+          <div class="item-split" v-show="hubSetting.isSupportPreheat"></div>
+          <div class="info-content" v-show="hubSetting.isSupportPreheat">
             <div class="info-row">
               <div class="info-row-left">Time</div>
-              <div class="info-row-right">10.0s</div>
+              <div class="info-row-right">
+                {{ (hubSetting.preheatTime / 1000).toFixed(1) }}s
+              </div>
             </div>
             <div class="info-row">
               <div class="info-row-left">Voltage</div>
-              <div class="info-row-right">1.7v</div>
+              <div class="info-row-right">
+                {{ (hubSetting.preheatVoltage / 1000).toFixed(1) }}v
+              </div>
             </div>
           </div>
         </div>
@@ -124,113 +141,127 @@
         </div>
       </div>
       <!-- Device模式 -->
-      <div v-show="selectModel == 'Device'" style="overflow-y: auto;">
-        <!-- Info -->
-        <div class="info-item">
-          <div class="info-title">
-            Hub Info
-          </div>
-          <div class="item-split"></div>
-          <div class="info-content">
-            <div class="info-row">
-              <div class="info-row-left">Device Model</div>
-              <div class="info-row-right">NORD</div>
+      <div v-show="selectModel === 'Device'" style="overflow-y: auto;">
+        <div v-if="loadDeviceSettingStatus === 1">
+          <!-- Info -->
+          <div class="info-item">
+            <div class="info-title">
+              Hub Info
             </div>
-            <div class="info-row">
-              <div class="info-row-left">ID</div>
-              <div class="info-row-right">36:52:63:OC:53:1D</div>
-            </div>
-            <div class="info-row">
-              <div class="info-row-left">Device Type</div>
-              <div class="info-row-right">Disposable</div>
-            </div>
-            <div class="info-row">
-              <div class="info-row-left">Resistance</div>
-              <div class="info-row-right">1.0 Ω</div>
-            </div>
-            <div class="info-row">
-              <div class="info-row-left">Production Time</div>
-              <div class="info-row-right">week 25,2022</div>
-            </div>
-            <div class="info-row">
-              <div class="info-row-left">Brand</div>
-              <div class="info-row-right">iKrusher</div>
-            </div>
-          </div>
-        </div>
-        <!-- Preheat -->
-        <div class="info-item">
-          <div class="info-title">
-            Preheat
-            <van-switch
-              style="margin-left:auto;"
-              v-model="deviceInfo.preheat"
-              active-color="#66DCA5"
-              inactive-color="#D6CDF2"
-              size="18"
-              :disabled="true"
-            />
-          </div>
-          <div class="item-split" v-show="deviceInfo.preheat"></div>
-          <div class="info-content" v-show="deviceInfo.preheat">
-            <div class="info-row">
-              <div class="info-row-left">Time</div>
-              <div class="info-row-right">10.0s</div>
-            </div>
-            <div class="info-row">
-              <div class="info-row-left">Voltage</div>
-              <div class="info-row-right">1.7v</div>
-            </div>
-          </div>
-        </div>
-        <!-- Voltage -->
-        <div class="info-item">
-          <div class="info-title">
-            Voltage Curve
-          </div>
-          <div class="item-split"></div>
-          <div class="info-content">
-            <div class="voltage-one">
-              <div
-                class="voltage-number"
-                v-for="(item, index) in deviceInfo.voltageCurve"
-                :key="index"
-              >
-                {{ Math.abs(item / 1000).toFixed(1) }}v
+            <div class="item-split"></div>
+            <div class="info-content">
+              <div class="info-row">
+                <div class="info-row-left">Device Model</div>
+                <div class="info-row-right">{{getInsertDeviceName}}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-left">ID</div>
+                <div class="info-row-right">{{ deviceIdentify }}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-left">Device Type</div>
+                <div class="info-row-right">{{ deviceType }}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-left">Resistance</div>
+                <div class="info-row-right">{{ resistance }} Ω</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-left">Production Time</div>
+                <div class="info-row-right">{{ productTime }}</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-left">Brand</div>
+                <div class="info-row-right">{{brandName}}</div>
               </div>
             </div>
-            <div
-              id="voltageTwo"
-              class="voltage-two"
-              style="width:100%;height:calc(20vh)"
-            >
-              <van-slider
-                v-for="(value, index) in deviceInfo.voltageCurve"
-                :key="index"
-                v-model="deviceInfo.voltageCurve[index]"
-                vertical
-                min="-4200"
-                max="-100"
-                :step="100"
-                bar-height="4px"
-                active-color="#EEEEEE"
+          </div>
+          <!-- Preheat -->
+          <div class="info-item">
+            <div class="info-title">
+              Preheat
+              <van-switch
+                style="margin-left:auto;"
+                v-model="hubSetting.isSupportPreheat"
+                active-color="#66DCA5"
                 inactive-color="#D6CDF2"
+                size="18"
                 :disabled="true"
-              >
-                <template #button>
-                  <img
-                    class="slider-button"
-                    src="@/assets/icons/icon_slider_button_disabled.png"
-                  />
-                </template>
-              </van-slider>
+              />
             </div>
-            <div class="voltage-three">
-              <div class="voltage-number" v-for="index of 6" :key="index">
-                {{ index }}s
+            <div class="item-split" v-show="deviceInfo.preheat"></div>
+            <div class="info-content" v-show="deviceInfo.preheat">
+              <div class="info-row">
+                <div class="info-row-left">Time</div>
+                <div class="info-row-right">10.0s</div>
+              </div>
+              <div class="info-row">
+                <div class="info-row-left">Voltage</div>
+                <div class="info-row-right">1.7v</div>
               </div>
             </div>
           </div>
+          <!-- Voltage -->
+          <div class="info-item">
+            <div class="info-title">
+              Voltage Curve
+            </div>
+            <div class="item-split"></div>
+            <div class="info-content">
+              <div class="voltage-one">
+                <div
+                  class="voltage-number"
+                  v-for="(item, index) in deviceInfo.voltageCurve"
+                  :key="index"
+                >
+                  {{ Math.abs(item / 1000).toFixed(1) }}v
+                </div>
+              </div>
+              <div
+                id="voltageTwo"
+                class="voltage-two"
+                style="width:100%;height:calc(20vh)"
+              >
+                <van-slider
+                  v-for="(value, index) in deviceInfo.voltageCurve"
+                  :key="index"
+                  v-model="deviceInfo.voltageCurve[index]"
+                  vertical
+                  min="-4200"
+                  max="-100"
+                  :step="100"
+                  bar-height="4px"
+                  active-color="#EEEEEE"
+                  inactive-color="#D6CDF2"
+                  :disabled="true"
+                >
+                  <template #button>
+                    <img
+                      class="slider-button"
+                      src="@/assets/icons/icon_slider_button_disabled.png"
+                    />
+                  </template>
+                </van-slider>
+              </div>
+              <div class="voltage-three">
+                <div class="voltage-number" v-for="index of 6" :key="index">
+                  {{ index }}s
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div v-else-if="loadDeviceSettingStatus === 0" class="error-info">
+          <div>{{ errorMessage }}</div>
+          <div class="try-again"
+              @click="reloadDeviceSetting"
+          >
+            Try again
+          </div>
+        </div>
+
+        <div v-else class="popup-content info-device-load">
+          <van-loading size="60px" />
         </div>
       </div>
     </div>
@@ -238,6 +269,9 @@
 </template>
 
 <script>
+import { mapGetters, mapState } from "vuex";
+import bluetoothRepository from "@/bluetooth/BluetoothRepository";
+
 export default {
   name: "SettingView",
   data() {
@@ -250,19 +284,106 @@ export default {
       deviceInfo: {
         preheat: true,
         voltageCurve: [-4200, -600, -2100, -3100, -1000, -900]
-      }
+      },
+      hubSetting: this.getHubSetting(),
+      deviceSetting: this.getDeviceSetting(),
+      loadDeviceSettingStatus: 2,
+      errorMessage: ""
     };
   },
   created() {},
-  mounted() {},
+  mounted() {
+
+  },
   watch: {},
-  computed: {},
+  computed: {
+    ...mapState({
+      macAddress: state => state.bluetooth.macAddress
+    }),
+    ...mapState("bluetooth", ["deviceId"]),
+    deviceType() {
+      if (this.deviceId) {
+        switch (this.deviceId.type) {
+          case 1:
+            return "Disposable";
+          case 3:
+            return "Pod Battery";
+          case 5:
+            return "510 Battery";
+        }
+
+        return "";
+      }
+      return "";
+    },
+
+    brandName() {
+      if (this.deviceId) {
+        switch (this.deviceId.productManufacture) {
+          case 0:
+            return "AVD";
+          case 1:
+            return "iKrusher";
+          case 2:
+            return "Unicore";
+        }
+      }
+      return "";
+    },
+
+    deviceIdentify() {
+      if (this.deviceId) {
+        return this.deviceId.deviceNumberHex;
+      }
+      return "";
+    },
+    resistance() {
+      if (this.deviceId) {
+        const r = this.deviceId.atomizedR;
+        return `${(r / 10).toFixed(1)}`;
+      }
+      return "";
+    },
+    productTime() {
+      if (this.deviceId) {
+        const year = this.deviceId.productYear;
+        const week = this.deviceId.productWeek;
+
+        return `week ${week}, 20${year.toString(16)}`;
+      }
+      return "";
+    }
+  },
   methods: {
+    ...mapGetters("bluetooth", ["getHubSetting", "getDeviceSetting"]),
     onClickHeaderReturn() {
       this.$router.go(-1);
     },
-    onClickSelectModel(model) {
+    reloadDeviceSetting() {
+      this.loadDeviceSettingStatus = 2; //转圈加载
+
+      setTimeout(() => {
+        this.loadDeviceSettingStatus = 1;
+      }, 1000);
+
+    },
+    async onClickSelectModel(model) {
       this.selectModel = model;
+      if (model === "Device") {
+        //如果是device的时候，转圈加载完在显示
+        try {
+          this.loadDeviceSettingStatus = 2; //转圈加载
+          await bluetoothRepository.queryWriter();
+          this.loadDeviceSettingStatus = 1; //加载成功
+        } catch (e) {
+          if (typeof e === "string") {
+            this.errorMessage = e;
+          } else {
+            this.errorMessage = "Read device info failure!";
+          }
+          this.loadDeviceSettingStatus = 0; //加载失败
+        }
+      }
     }
   }
 };
@@ -328,6 +449,25 @@ export default {
     }
     .info-item:last-child {
       margin-bottom: 16px;
+    }
+    .info-device-load {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 60px 0;
+    }
+    .error-info {
+      height: 50vh;
+      color: #86a1a9;
+      display: flex;
+      text-align: center;
+      justify-content: center;
+      flex-direction: column;
+      justify-items: center;
+      margin-top: 10px;
+      .try-again {
+        margin-top: 2vh;
+      }
     }
 
     .info-item {

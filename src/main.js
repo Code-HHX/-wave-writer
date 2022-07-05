@@ -27,7 +27,8 @@ import {
   Slider,
   Icon,
   Tab,
-  Tabs
+  Tabs,
+  Loading
 } from "vant";
 
 Vue.use(Popup);
@@ -41,6 +42,7 @@ Vue.use(Icon);
 Vue.use(Tab);
 Vue.use(Tabs);
 Vue.use(Waves);
+Vue.use(Loading);
 
 //全局暴露api接口
 Vue.prototype.$api = api;
