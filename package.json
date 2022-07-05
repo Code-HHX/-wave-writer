@@ -7,7 +7,8 @@
     "test": "vue-cli-service serve --mode test",
     "prod": "vue-cli-service serve --mode prod",
     "build:test": "vue-cli-service build --mode test",
-    "build:prod": "vue-cli-service build --mode prod"
+    "build:prod": "vue-cli-service build --mode prod",
+    "lint": "eslint --fix --ext .js,.vue src"
   },
   "dependencies": {
     "amfe-flexible": "^2.2.1",
@@ -35,5 +36,9 @@
     "postcss-pxtorem": "^5.1.1",
     "prettier": "^1.18.2",
     "vue-template-compiler": "^2.6.10"
+  },
+  "prettier": {
+    "eslintIntegration": true,
+    "semi": true
   }
 }
