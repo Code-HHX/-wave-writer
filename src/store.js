@@ -21,7 +21,13 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     userInfo: {},
-    curveModes: []
+    curveModes: null,
+    diySetting: (() => {
+      const setting = new WriterSetting();
+      setting.id = 0;
+      setting.modeName = "DIY";
+      return setting;
+    })()
   },
   mutations: {
     setLoginInfo(state, payload) {
@@ -35,18 +41,6 @@ export default new Vuex.Store({
         localStorage.setItem(KEY_LOCAL_STORAGE_TOKEN, null);
       }
     },
-    /**
-     * createTime: null
-     heatingVoltage: "1300,1400,1500,1600,1700,1800"
-     id: 64
-     modeName: "Current"
-     nfcSettings: 0
-     preheatSetting: 1
-     preheatTime: "20000"
-     preheatVoltage: "1800"
-     * @param state
-     * @param payload
-     */
     setCurveModes(state, payload) {
       state.curveModes = [].concat(
         payload.map(item => {
@@ -54,15 +48,21 @@ export default new Vuex.Store({
           setting.id = item.id;
           setting.diyVoltage = item.heatingVoltage
             .split(",")
-            .map(item => parseInt(item));
-          setting.isSupportNfc = item.nfcSettings;
-          setting.isSupportPreheat = item.preheatSetting;
+            .map(item => parseInt(item) * -1);
+          setting.isSupportNfc = item.nfcSettings === 1;
+          setting.isSupportPreheat = item.preheatSetting === 1;
           setting.modeName = item.modeName;
           setting.preheatTime = item.preheatTime;
           setting.preheatVoltage = item.preheatVoltage;
           return setting;
         })
       );
+    },
+    setDiySetting(state, payload) {
+      payload.id = 0;
+      payload.modeName = "DIY";
+      payload.diyVoltage = payload.diyVoltage.map(item => item * -1);
+      state.diySetting = payload;
     }
   },
   actions: {
@@ -73,6 +73,8 @@ export default new Vuex.Store({
       // //保存token
       commit("setLoginInfo", userInfo);
       commit("setToken", userInfo.token);
+
+      await dispatch("loadWriterCurves");
 
       //跳转到Home
       router.replace({
@@ -107,7 +109,15 @@ export default new Vuex.Store({
     }
     //#endregion
   },
-  getters: {},
+  getters: {
+    getCurveModes(state) {
+      return state.curveModes;
+    },
+
+    getDiySetting(state) {
+      return state.diySetting;
+    }
+  },
   modules: {
     bluetooth: BluetoothStore
   }

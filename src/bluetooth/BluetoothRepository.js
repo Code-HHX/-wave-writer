@@ -868,7 +868,7 @@ class BluetoothRepository {
                     ret === 0x02
                       ? "Please connect the device."
                       : ret === 0x03
-                      ? "CRead error, please confirm the device readable?"
+                      ? "Read error, please confirm the device readable?"
                       : "Low power, please charge."
                   );
                 }

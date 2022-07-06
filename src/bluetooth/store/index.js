@@ -279,12 +279,12 @@ export const BluetoothStore = {
       // }
       const productManufacture =
         BRAND_PRODUCT_MAP[`${payload.productManufacture}`];
-      if (productManufacture) {
+      if (!productManufacture) {
         state.insertDeviceName = "Unknown";
         return;
       }
       const productName = productManufacture[`${payload.productNumber}`];
-      if (productManufacture) {
+      if (!productManufacture) {
         state.insertDeviceName = "Unknown";
         return;
       }
@@ -552,10 +552,7 @@ export const BluetoothStore = {
       return state.deviceId;
     },
     getHubSetting(state, getters, rootState) {
-      return new WriterSetting();
-    },
-    getDeviceSetting(state, getters, rootState) {
-      return new WriterSetting();
+      return state.hubSetting;
     }
   }
 };

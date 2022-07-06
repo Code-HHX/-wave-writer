@@ -34,7 +34,7 @@ module.exports = {
       }
     ],
     "no-irregular-whitespace": "off",
-    "no-console": "off", //禁止console报错检查
+    // "no-console": "off", //禁止console报错检查
     "generator-star-spacing": "off", //禁止空格报错检查
     "no-useless-escape": 0
 
