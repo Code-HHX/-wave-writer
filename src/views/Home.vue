@@ -136,7 +136,7 @@
               <van-slider
                 v-model="modelList[0].preheatTime"
                 min="1000"
-                max="10000"
+                max="20000"
                 @change="onClickModelItem(0)"
                 :step="500"
                 bar-height="4px"
@@ -157,7 +157,7 @@
               </van-slider>
               <div class="times-item-msg">
                 <div class="times-left">1&nbsp;s</div>
-                <div class="times-right">10&nbsp;s</div>
+                <div class="times-right">20&nbsp;s</div>
               </div>
             </div>
             <div class="subtitle">
@@ -361,12 +361,14 @@
 import * as echarts from "echarts";
 import { voltageData } from "@/config/echarts-data";
 import { WriterSetting } from "@/bluetooth/BluetoothData";
-import { mapState } from "vuex";
+import { mapGetters, mapState } from "vuex";
 import bluetoothRepository from "@/bluetooth/BluetoothRepository";
 
 import store from "@/store";
 import log from "@/util/log";
 import api from "@/api";
+import { Toast } from "vant";
+import writer from "../api/writer";
 
 export default {
   name: "Home",
@@ -381,37 +383,44 @@ export default {
       showSavePopup: false
     };
   },
-  created() {},
+  async created() {
+    log("created");
+    const diySetting = this.getDiySetting();
+    const curveModes = this.getCurveModes();
+    if (curveModes === null) {
+      //登录后，没数据的话，从网络获取
+      await store.dispatch("loadWriterCurves");
+      this.modelList = [diySetting].concat(this.getCurveModes());
+    } else {
+      this.modelList = [diySetting].concat(curveModes);
+    }
+  },
+  async activated() {
+    log("created");
+    const { setting } = this.$route.params;
+    if (setting) {
+      Object.assign(this.modelList[0], setting);
+      this.modelList[0].id = 0;
+      this.modelList[0].modeName = "DIY";
+      const origin = setting.diyVoltage;
+      this.modelList[0].diyVoltage = [].concat(origin);
+      this.curveModel = 0;
+      this.$refs.modelSelect.scrollTo(0, 0);
+    }
+  },
   async mounted() {
+    log("mounted");
     // this.myChart = echarts.init(document.getElementById("voltageOne"));
     // window.addEventListener("resize", () => {
-    //   this.myChart.resize();
+    //   this.myChart.resize();this.$route.params.setting
     // });
     // this.getVoltageOne();
-    const diySetting = new WriterSetting();
-    diySetting.modeName = "DIY";
-    this.modelList = [diySetting];
-    let curveModes = await api.writer.curveModes();
-    this.modelList = [diySetting].concat(
-      curveModes.map(item => {
-        const setting = new WriterSetting();
-        setting.id = item.id;
-        setting.diyVoltage = item.heatingVoltage
-          .split(",")
-          .map(item => parseInt(item) * -1);
-        setting.isSupportNfc = item.nfcSettings;
-        setting.isSupportPreheat = item.preheatSetting;
-        setting.modeName = item.modeName;
-        setting.preheatTime = item.preheatTime;
-        setting.preheatVoltage = item.preheatVoltage;
-        return setting;
-      })
-    );
   },
   computed: {
     ...mapState({
       isConnected: state => state.bluetooth.isConnected,
-      deviceList: state => state.bluetooth.deviceList
+      deviceList: state => state.bluetooth.deviceList,
+      deviceVersion: state => state.bluetooth.deviceVersion
     }),
     saveDisabled() {
       if (this.curveModel === 0) {
@@ -433,6 +442,7 @@ export default {
     }
   },
   methods: {
+    ...mapGetters(["getCurveModes", "getDiySetting"]),
     onClickMenu() {
       this.showMenuPopup = true;
     },
@@ -445,7 +455,9 @@ export default {
     onClickModelItem(index) {
       this.curveModel = index;
       Object.assign(this.modelList[0], this.modelList[index]);
-      const origin = this.modelList[0].diyVoltage;
+      this.modelList[0].id = 0;
+      this.modelList[0].modeName = "DIY";
+      const origin = this.modelList[index].diyVoltage;
       this.modelList[0].diyVoltage = [].concat(origin);
     },
     onClickSetting() {
@@ -499,11 +511,29 @@ export default {
       }
 
       const writerSetting = new WriterSetting();
-      Object.assign(writerSetting, this.diySetting);
+      Object.assign(writerSetting, this.modelList[this.curveModel]);
       writerSetting.diyVoltage = writerSetting.diyVoltage.map(item =>
         Math.abs(item)
       );
       bluetoothRepository.writeToWriter(writerSetting);
+      //上传到服务器
+      let hw = "";
+      let fw = "";
+      let deviceVersion = this.deviceVersion.split("&");
+      //解析设备的版本信息
+      if (deviceVersion.length === 2) {
+        hw = parseInt(deviceVersion[0].replace("HW", ""), 16);
+        fw = parseInt(deviceVersion[1].replace("FW", ""));
+      }
+      const resp = writer.uploadConfig(
+        this.modelList[this.curveModel].id,
+        this.modelList[this.curveModel].modeName,
+        this.cartridgeFlag,
+        this.macAddress,
+        this.deviceVersion,
+        "iOS&1.0.0",
+        writerSetting
+      );
     },
     getVoltageOne() {
       voltageData.series[0].data = this.voltageNewData;
@@ -530,6 +560,10 @@ export default {
       this.showSavePopup = false;
     },
     onClickSaveSure() {
+      if (!this.isConnected) {
+        Toast.fail("Please Connect Device");
+        return;
+      }
       this.showSavePopup = false;
       this.$router.push("Settings");
     },

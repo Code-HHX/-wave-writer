@@ -100,7 +100,7 @@
             <div class="voltage-one">
               <div
                 class="voltage-number"
-                v-for="(item, index) in hubInfo.voltageCurve"
+                v-for="(item, index) in hubVoltage"
                 :key="index"
               >
                 {{ Math.abs(item / 1000).toFixed(1) }}v
@@ -112,9 +112,9 @@
               style="width:100%;height:calc(20vh)"
             >
               <van-slider
-                v-for="(value, index) in hubInfo.voltageCurve"
+                v-for="(value, index) in hubVoltage"
                 :key="index"
-                v-model="hubInfo.voltageCurve[index]"
+                v-model="hubVoltage[index]"
                 vertical
                 min="-4200"
                 max="-100"
@@ -152,7 +152,7 @@
             <div class="info-content">
               <div class="info-row">
                 <div class="info-row-left">Device Model</div>
-                <div class="info-row-right">{{ getInsertDeviceName }}</div>
+                <div class="info-row-right">{{ insertDeviceName }}</div>
               </div>
               <div class="info-row">
                 <div class="info-row-left">ID</div>
@@ -189,15 +189,22 @@
                 :disabled="true"
               />
             </div>
-            <div class="item-split" v-show="deviceInfo.preheat"></div>
-            <div class="info-content" v-show="deviceInfo.preheat">
+            <div
+              class="item-split"
+              v-show="writerSetting.isSupportPreheat"
+            ></div>
+            <div class="info-content" v-show="writerSetting.isSupportPreheat">
               <div class="info-row">
                 <div class="info-row-left">Time</div>
-                <div class="info-row-right">10.0s</div>
+                <div class="info-row-right">
+                  {{ (writerSetting.preheatTime / 1000).toFixed(1) }}s
+                </div>
               </div>
               <div class="info-row">
                 <div class="info-row-left">Voltage</div>
-                <div class="info-row-right">1.7v</div>
+                <div class="info-row-right">
+                  {{ (writerSetting.preheatVoltage / 1000).toFixed(1) }}v
+                </div>
               </div>
             </div>
           </div>
@@ -211,7 +218,7 @@
               <div class="voltage-one">
                 <div
                   class="voltage-number"
-                  v-for="(item, index) in deviceInfo.voltageCurve"
+                  v-for="(item, index) in deviceVoltage"
                   :key="index"
                 >
                   {{ Math.abs(item / 1000).toFixed(1) }}v
@@ -223,9 +230,9 @@
                 style="width:100%;height:calc(20vh)"
               >
                 <van-slider
-                  v-for="(value, index) in deviceInfo.voltageCurve"
+                  v-for="(value, index) in deviceVoltage"
                   :key="index"
-                  v-model="deviceInfo.voltageCurve[index]"
+                  v-model="deviceVoltage[index]"
                   vertical
                   min="-4200"
                   max="-100"
@@ -275,16 +282,7 @@ export default {
   data() {
     return {
       selectModel: "Hub",
-      hubInfo: {
-        preheat: false,
-        voltageCurve: [-1300, -1700, -3300, -4000, -2000, -2900]
-      },
-      deviceInfo: {
-        preheat: true,
-        voltageCurve: [-4200, -600, -2100, -3100, -1000, -900]
-      },
       hubSetting: this.getHubSetting(),
-      deviceSetting: this.getDeviceSetting(),
       loadDeviceSettingStatus: 2,
       errorMessage: ""
     };
@@ -296,7 +294,13 @@ export default {
     ...mapState({
       macAddress: state => state.bluetooth.macAddress
     }),
-    ...mapState("bluetooth", ["deviceId"]),
+    ...mapState("bluetooth", ["deviceId", "insertDeviceName", "writerSetting"]),
+    deviceVoltage() {
+      return this.writerSetting.diyVoltage.map(item => item * -1).slice(0, 6);
+    },
+    hubVoltage() {
+      return this.hubSetting.diyVoltage.map(item => item * -1).slice(0, 6);
+    },
     deviceType() {
       if (this.deviceId) {
         switch (this.deviceId.type) {
@@ -351,16 +355,14 @@ export default {
     }
   },
   methods: {
-    ...mapGetters("bluetooth", ["getHubSetting", "getDeviceSetting"]),
+    ...mapGetters("bluetooth", ["getHubSetting"]),
     onClickHeaderReturn() {
       this.$router.go(-1);
     },
-    reloadDeviceSetting() {
+    async reloadDeviceSetting() {
       this.loadDeviceSettingStatus = 2; //转圈加载
-
-      setTimeout(() => {
-        this.loadDeviceSettingStatus = 1;
-      }, 1000);
+      await bluetoothRepository.queryWriter();
+      this.loadDeviceSettingStatus = 1; //加载成功
     },
     async onClickSelectModel(model) {
       this.selectModel = model;

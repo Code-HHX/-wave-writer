@@ -30,7 +30,9 @@ import {
   Tabs,
   Loading,
   Divider,
-  Popover
+  Popover,
+  PullRefresh,
+  List
 } from "vant";
 
 Vue.use(Popup);
@@ -47,6 +49,8 @@ Vue.use(Loading);
 Vue.use(Divider);
 Vue.use(Popover);
 Vue.use(Waves);
+Vue.use(PullRefresh);
+Vue.use(List);
 
 //全局暴露api接口
 Vue.prototype.$api = api;

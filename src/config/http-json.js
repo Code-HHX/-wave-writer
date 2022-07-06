@@ -28,7 +28,7 @@ const service = axios.create({
 
 //const ASCRIPTION = "ASCRIPTION";
 const TIME_ZONE = "timeZone";
-const TOKEN = "omni-token";
+const TOKEN = "waveWriter-token";
 //const SOURCE = "source";
 
 //http request 拦截器
@@ -37,7 +37,16 @@ service.interceptors.request.use(
     //获取token
     //const token = window.localStorage.getItem("token");
     if (currentTask.length === 0) {
-      Toast.loading("Loading...");
+      if (
+        config.data === null ||
+        config.data.showLoading === undefined ||
+        config.data.showLoading === true
+      ) {
+        Toast.loading("Loading...");
+        if (config.data && config.data.showLoading) {
+          delete config.data.showLoading;
+        }
+      }
     }
     currentTask.push(config);
     let timezone = new Date().getTimezoneOffset() / -60;
@@ -82,7 +91,7 @@ service.interceptors.response.use(
     //接口请求异常，抛出异常信息
     Toast.fail({
       duration: 2000,
-      message: error.data.message,
+      message: "Server Error",
       closeOnClick: false,
       closeOnClickOverlay: false
     });
@@ -91,11 +100,12 @@ service.interceptors.response.use(
 );
 
 //#region Get请求(Json)
-export function requestGet(url, params = {}) {
+export function requestGet(url, params = {}, data = null) {
   return new Promise((resolve, reject) => {
     service({
       url: url,
       method: "get",
+      data: data,
       params: params
     })
       .then(response => {
