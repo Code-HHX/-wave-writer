@@ -300,7 +300,7 @@
         </div>
       </div>
     </van-popup>
-    <!-- 断开蓝牙弹窗Disconnect -->
+    <!-- 断开蓝牙弹窗 Disconnect -->
     <van-popup
       class="save-popup"
       v-model="showDisconnectPopup"
@@ -331,7 +331,7 @@
         </div>
       </div>
     </van-popup>
-    <!-- 保存弹窗Save -->
+    <!-- 保存弹窗 Save -->
     <van-popup
       class="save-popup"
       v-model="showSavePopup"
@@ -349,6 +349,33 @@
             Cancel
           </button>
           <button class="save-footer-sure" @click="onClickSaveSure" v-waves>
+            Sure
+          </button>
+        </div>
+      </div>
+    </van-popup>
+    <!-- 退出登录弹窗 Logout -->
+    <van-popup
+      class="save-popup"
+      v-model="showLogoutPopup"
+      round
+      :style="{ width: '88%' }"
+      :close-on-click-overlay="false"
+    >
+      <div class="save-header">Tips</div>
+      <div class="save-content">
+        <div class="save-content-msg">
+          Are you sure you want to log out?
+        </div>
+        <div class="save-footer">
+          <button
+            class="save-footer-cancel"
+            @click="onClickLogout(false)"
+            v-waves
+          >
+            Cancel
+          </button>
+          <button class="save-footer-sure" @click="onClickLogout(true)" v-waves>
             Sure
           </button>
         </div>
@@ -378,7 +405,8 @@ export default {
       showMenuPopup: false,
       showBluetoothPopup: false,
       showDisconnectPopup: false,
-      showSavePopup: false
+      showSavePopup: false,
+      showLogoutPopup: false
     };
   },
   created() {},
@@ -391,7 +419,7 @@ export default {
     const diySetting = new WriterSetting();
     diySetting.modeName = "DIY";
     this.modelList = [diySetting];
-    let curveModes = await api.writer.curveModes();
+    let curveModes = await api.writer.selectCustomFirmwareSettings();
     this.modelList = [diySetting].concat(
       curveModes.map(item => {
         const setting = new WriterSetting();
@@ -440,7 +468,7 @@ export default {
       this.showMenuPopup = false;
     },
     onClickSignOut() {
-      this.$router.replace("Login");
+      this.showLogoutPopup = true;
     },
     onClickModelItem(index) {
       this.curveModel = index;
@@ -449,7 +477,22 @@ export default {
       this.modelList[0].diyVoltage = [].concat(origin);
     },
     onClickSetting() {
-      this.$router.push("Settings");
+      let selectVoltage = [];
+      this.modelList.forEach(element => {
+        if (element.modeName != "DIY") {
+          const model = {};
+          model.id = element.id;
+          model.modeName = element.modeName;
+          model.checked = true;
+          selectVoltage.push(model);
+        }
+      });
+      this.$router.push({
+        name: "Settings",
+        params: {
+          selectVoltage
+        }
+      });
     },
     onTouchmoveVoltage(e) {},
 
@@ -535,6 +578,17 @@ export default {
     },
     onClickHistory() {
       this.$router.push("History");
+    },
+    onClickLogout(value) {
+      if (value) {
+        this.showMenuPopup = false;
+        this.showLogoutPopup = false;
+        setTimeout(() => {
+          this.$router.replace("Login");
+        }, 100);
+      } else {
+        this.showLogoutPopup = false;
+      }
     }
   }
 };

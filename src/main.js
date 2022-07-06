@@ -30,7 +30,11 @@ import {
   Tabs,
   Loading,
   Divider,
-  Popover
+  Popover,
+  PasswordInput,
+  NumberKeyboard,
+  List,
+  PullRefresh
 } from "vant";
 
 Vue.use(Popup);
@@ -46,6 +50,10 @@ Vue.use(Tabs);
 Vue.use(Loading);
 Vue.use(Divider);
 Vue.use(Popover);
+Vue.use(PasswordInput);
+Vue.use(NumberKeyboard);
+Vue.use(List);
+Vue.use(PullRefresh);
 Vue.use(Waves);
 
 //全局暴露api接口

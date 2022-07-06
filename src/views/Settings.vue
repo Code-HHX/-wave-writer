@@ -21,9 +21,9 @@
           <div
             class="my-voltage-item"
             v-for="(item, index) in selectVoltage"
-            :key="index"
+            :key="item.id"
           >
-            <span>{{ item.title }}</span>
+            <span>{{ item.modeName }}</span>
             <img
               src="@/assets/icons/icon_close.png"
               @click="onClickDeleteMyVoltage(index)"
@@ -45,7 +45,7 @@
           title-active-color="#6649c4"
         >
           <van-tab title="Recommended" name="recommended">
-            <div class="recommended">
+            <div class="recommended" v-if="recommendedList.length > 0">
               <div class="recommended-header">
                 Hot
                 <!-- 过滤气泡弹出框 Filter -->
@@ -65,7 +65,13 @@
                   </template>
                 </van-popover>
               </div>
-              <div class="recommended-list">
+              <van-list
+                class="recommended-list"
+                v-model="loading_tab1"
+                :finished="finished_tab1"
+                finished-text="没有更多了"
+                @load="onLoadTab1"
+              >
                 <div
                   class="recommended-item"
                   v-for="(item, index) in recommendedList"
@@ -73,29 +79,34 @@
                 >
                   <div class="recommended-item-left">
                     <div class="item-left-title">
-                      {{ item.text }}
+                      {{ item.modeName }}
                       <div
                         class="item-left-label"
-                        v-for="(label, index1) in item.label"
+                        v-for="(label, index1) in item.flavorName"
                         :key="index1"
                       >
                         {{ label }}
                       </div>
                     </div>
-                    <div class="item-left-msg">{{ item.used }} used</div>
+                    <div class="item-left-msg">{{ item.useCount }} used</div>
                     <div class="item-left-msg">
-                      {{ item.explain }}
+                      {{ item.description }}
                     </div>
                   </div>
                   <div class="recommended-item-right">
                     <van-button
                       type="default"
                       @click="onClickApply(index)"
-                      :class="item.usageState ? 'button-cancel' : 'button-use'"
-                      >{{ item.usageState ? "Cancel" : "Use" }}</van-button
+                      :class="item.checked ? 'button-cancel' : 'button-use'"
+                      >{{ item.checked ? "Cancel" : "Use" }}</van-button
                     >
                   </div>
                 </div>
+              </van-list>
+            </div>
+            <div class="recommended" v-else>
+              <div class="my-setting-no-setting">
+                No recommendation yet
               </div>
             </div>
           </van-tab>
@@ -170,85 +181,70 @@ export default {
         { text: "Banana", className: "" }
       ],
       selectFilter: "",
-      selectVoltage: [
-        {
-          title: "Wind Land"
-        },
-        {
-          title: "Soul fly"
-        },
-        {
-          title: "GOD BLESS"
-        },
-        {
-          title: "Wind Land"
-        },
-        {
-          title: "Wind Land Soul fly test test"
-        }
-      ],
+      selectVoltage: [],
       activeSetting: "recommended", //recommended or mySettings
-      recommendedList: [
-        {
-          text: "Wind Land", //名称
-
-          label: ["Omni hub"], //标签
-          used: "19258", //使用人数
-          explain: "Best Experience for rosin (Description)", //说明
-          usageState: false //使用状态
-        },
-        {
-          text: "Find you soul", //名称
-          label: ["Rosin"], //标签
-          used: "19258", //使用人数
-          explain: "Best Experience for rosin (Description)", //说明
-          usageState: true //使用状态
-        },
-        {
-          text: "Soul fly", //名称
-          label: ["Rosin", "Apple bomb"], //标签
-          used: "19258", //使用人数
-          explain: "Best Experience for rosin (Description)", //说明
-          usageState: false //使用状态
-        },
-        {
-          text: "Wind Land", //名称
-
-          label: ["Omni hub"], //标签
-          used: "19258", //使用人数
-          explain: "Best Experience for rosin (Description)", //说明
-          usageState: false //使用状态
-        },
-        {
-          text: "Find you soul", //名称
-          label: ["Rosin"], //标签
-          used: "19258", //使用人数
-          explain: "Best Experience for rosin (Description)", //说明
-          usageState: true //使用状态
-        },
-        {
-          text: "Soul fly", //名称
-          label: ["Rosin", "Apple bomb"], //标签
-          used: "19258", //使用人数
-          explain: "Best Experience for rosin (Description)", //说明
-          usageState: false //使用状态
-        }
-      ],
-      mySettingList: []
+      recommendedList: [],
+      mySettingList: [],
+      pageNum_tab1: 1,
+      PageNum_tab2: 1,
+      loading_tab1: false,
+      finished_tab1: false
     };
   },
-  created() {},
-  mounted() {},
+  created() {
+    this.selectVoltage = this.$route.params.selectVoltage;
+  },
+  mounted() {
+    this.$api.writer
+      .selectRecommendSettingsDetails({
+        pageNum: this.pageNum_tab1,
+        pageSize: 5
+      })
+      .then(res => {
+        res.forEach(element => {
+          element.checked = false;
+          this.selectVoltage.forEach(item => {
+            if (element.modeName == item.modeName) {
+              element.checked = true;
+              return;
+            }
+          });
+        });
+        this.recommendedList = res;
+        console.log(this.recommendedList);
+      })
+      .catch(error => {
+        this.$toast(error);
+      });
+  },
   watch: {},
   computed: {},
   methods: {
+    onLoad() {
+      setTimeout(() => {
+        this.loading = false;
+
+        if (this.recommendedList.length >= 40) {
+          this.finished = true;
+        }
+      }, 1000);
+    },
     onClickHeaderReturn() {
       this.$router.go(-1);
     },
     onClickDeleteMyVoltage(index) {
+      let modeName = this.selectVoltage[index].modeName;
+      if (
+        this.recommendedList.findIndex(item => item.modeName == modeName) != -1
+      ) {
+        this.recommendedList[
+          this.recommendedList.findIndex(item => item.modeName == modeName)
+        ].checked = false;
+      }
       this.selectVoltage.splice(index, 1);
     },
     onClickApply(index) {
+      let modeName = this.recommendedList[index].modeName;
       if (this.selectVoltage.length >= 5) {
         this.$toast({
           type: "fail",
@@ -258,8 +254,18 @@ export default {
         });
         return;
       }
-      this.recommendedList[index].usageState = !this.recommendedList[index]
-        .usageState;
+      this.recommendedList[index].checked = !this.recommendedList[index]
+        .checked;
+      if (this.recommendedList[index].checked) {
+        if (!this.selectVoltage.some(item => item.modeName == modeName)) {
+          this.selectVoltage.push(this.recommendedList[index]);
+        }
+      } else {
+        let cancelIndex = this.selectVoltage.findIndex(
+          item => item.modeName == modeName
+        );
+        this.selectVoltage.splice(cancelIndex, 1);
+      }
     },
     onClickCreateMySetting() {},
     getContainer() {
@@ -429,6 +435,7 @@ export default {
 
         .recommended-list,
         .my-setting-list {
+          height: 100%;
           display: flex;
           flex-direction: column;
           overflow-y: auto;

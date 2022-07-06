@@ -28,7 +28,7 @@ const service = axios.create({
 
 //const ASCRIPTION = "ASCRIPTION";
 const TIME_ZONE = "timeZone";
-const TOKEN = "omni-token";
+const TOKEN = "waveWriter-token";
 //const SOURCE = "source";
 
 //http request 拦截器

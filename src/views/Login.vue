@@ -21,7 +21,7 @@
         minlength="6"
         maxlength="20"
       />
-      <div class="forgot">Forgot password?</div>
+      <div class="forgot" @click="onClickForgot">Forgot password?</div>
       <van-button
         class="button-login"
         type="default"
@@ -77,6 +77,9 @@ export default {
   },
   computed: {},
   methods: {
+    onClickForgot() {
+      this.$router.push("ResetPassword");
+    },
     onClickLogin() {
       if (this.$utils.isNullAndEmpty(this.email)) {
         this.tipsMsg = "E-mail cannot be empty.";

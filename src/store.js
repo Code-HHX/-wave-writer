@@ -102,7 +102,7 @@ export default new Vuex.Store({
 
     //请求用户的曲线设置
     async loadWriterCurves({ commit }) {
-      let writerCurves = await api.writer.curveModes();
+      let writerCurves = await api.writer.selectCustomFirmwareSettings();
       commit("setCurveModes", writerCurves);
     }
     //#endregion

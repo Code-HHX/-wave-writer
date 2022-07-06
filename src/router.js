@@ -28,6 +28,13 @@ export const routes = [
     auth: false //是否登录鉴权
   },
   {
+    path: "/ResetPassword",
+    name: "ResetPassword",
+    component: () => import("@/views/ResetPassword.vue"),
+    meta: { auth: true },
+    auth: false //是否登录鉴权
+  },
+  {
     path: "/History",
     name: "History",
     component: () => import("@/views/History.vue"),
