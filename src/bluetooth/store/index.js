@@ -277,7 +277,8 @@ export const BluetoothStore = {
       // } else {
       //   state.insertDeviceName = "Device";
       // }
-      const productManufacture = BRAND_PRODUCT_MAP[`${payload.productManufacture}`];
+      const productManufacture =
+        BRAND_PRODUCT_MAP[`${payload.productManufacture}`];
       if (productManufacture) {
         state.insertDeviceName = "Unknown";
         return;
@@ -555,7 +556,6 @@ export const BluetoothStore = {
     },
     getDeviceSetting(state, getters, rootState) {
       return new WriterSetting();
-    },
-
+    }
   }
 };

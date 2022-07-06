@@ -270,6 +270,36 @@
         </div>
       </div>
     </van-popup>
+    <!-- 连接蓝牙弹窗Popup -->
+    <van-popup
+      class="bluetooth-popup"
+      v-model="showBluetoothPopup"
+      round
+      :style="{ width: '88%' }"
+    >
+      <div class="bluetooth-header">Connect Device</div>
+      <div class="bluetooth-content">
+        <van-loading color="#6649C4" size="40" text-size="16px"
+          >Searching...</van-loading
+        >
+        <div class="bluetooth-list">
+          <div
+            class="bluetooth-item"
+            v-for="(item, index) in deviceList"
+            :key="index"
+          >
+            <img src="@/assets/icons/icon_bluetooth_device.png" />
+            {{ item.name }}
+            <van-button
+              class="bluetooth-connect-button"
+              type="default"
+              @click="onClickConnectDevice(item)"
+              >Connect</van-button
+            >
+          </div>
+        </div>
+      </div>
+    </van-popup>
     <!-- 断开蓝牙弹窗Disconnect -->
     <van-popup
       class="save-popup"
@@ -343,9 +373,10 @@ export default {
   data() {
     return {
       curveModel: 0,
-      modelList: [],
+      modelList: [{ diyVoltage: [] }],
       myChart: {},
       showMenuPopup: false,
+      showBluetoothPopup: false,
       showDisconnectPopup: false,
       showSavePopup: false
     };
@@ -380,7 +411,8 @@ export default {
   },
   computed: {
     ...mapState({
-      isConnected: state => state.bluetooth.isConnected
+      isConnected: state => state.bluetooth.isConnected,
+      deviceList: state => state.bluetooth.deviceList
     }),
     saveDisabled() {
       if (this.curveModel === 0) {
@@ -388,6 +420,17 @@ export default {
       } else {
         return true;
       }
+    }
+  },
+  watch: {
+    deviceList(value) {
+      console.log(value);
+    },
+    isConnected(value) {
+      if (value) this.showBluetoothPopup = false;
+    },
+    showBluetoothPopup(value) {
+      if (!value) bluetoothRepository.cancelSearch();
     }
   },
   methods: {
@@ -436,7 +479,11 @@ export default {
         this.showDisconnectPopup = true;
       } else {
         bluetoothRepository.startPair();
+        this.showBluetoothPopup = true;
       }
+    },
+    onClickConnectDevice(device) {
+      if (device) bluetoothRepository.connectDevice(device, true);
     },
     onClickSettingsView() {
       this.$router.push("SettingsView");
@@ -927,6 +974,65 @@ export default {
             width: 22px;
             height: 22px;
             margin-right: 10px;
+          }
+        }
+      }
+    }
+  }
+  .bluetooth-popup {
+    max-height: 390px;
+    .bluetooth-header {
+      font-size: 18px;
+      font-weight: bold;
+      color: #555555;
+      padding: 15px 0;
+      border-bottom: 1px solid #eeeeee;
+      text-align: center;
+    }
+    .bluetooth-content {
+      padding: 20px 16px 15px 16px;
+      font-size: 18px;
+      font-weight: 400;
+      color: #555555;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .bluetooth-list {
+        display: flex;
+        flex-direction: column;
+        max-height: 260px;
+        overflow-y: auto;
+        width: 100%;
+
+        .bluetooth-item {
+          height: 50px;
+          min-height: 50px;
+          background: #ffffff;
+          border-radius: 10px;
+          border: 1px solid #eeeeee;
+          margin-top: 10px;
+          display: flex;
+          align-items: center;
+          font-size: 14px;
+          font-weight: 400;
+          color: #555555;
+
+          img {
+            margin-left: 10px;
+            width: 26px;
+            height: 26px;
+          }
+
+          .bluetooth-connect-button {
+            height: 40px;
+            border-radius: 8px;
+            margin-left: auto;
+            margin-right: 10px;
+            background: #f1edff;
+            font-size: 14px;
+            font-weight: 400;
+            color: #6649c4;
           }
         }
       }

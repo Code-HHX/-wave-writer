@@ -84,7 +84,44 @@
             </div>
           </van-tab>
           <van-tab title="My Settings" name="mySettings">
-            <div class="my-setting"></div>
+            <div class="my-setting">
+              <div class="my-setting-header">
+                Hot
+                <span>Filter <img src="@/assets/icons/icon_filter.png"/></span>
+              </div>
+              <div class="my-setting-list">
+                <div
+                  class="my-setting-item"
+                  v-for="(item, index) in recommendedList"
+                  :key="index"
+                >
+                  <div class="my-setting-item-left">
+                    <div class="item-left-title">
+                      {{ item.text }}
+                      <div
+                        class="item-left-label"
+                        v-for="(label, index1) in item.label"
+                        :key="index1"
+                      >
+                        {{ label }}
+                      </div>
+                    </div>
+                    <div class="item-left-msg">{{ item.used }} used</div>
+                    <div class="item-left-msg">
+                      {{ item.explain }}
+                    </div>
+                  </div>
+                  <div class="my-setting-item-right">
+                    <van-button
+                      type="default"
+                      @click="onClickApply(index)"
+                      :class="item.usageState ? 'button-cancel' : 'button-use'"
+                      >{{ item.usageState ? "Cancel" : "Use" }}</van-button
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
           </van-tab>
         </van-tabs>
       </div>
@@ -296,12 +333,14 @@ export default {
           height: 100%;
         }
       }
-      .recommended {
+      .recommended,
+      .my-setting {
         height: 100%;
         display: flex;
         flex-direction: column;
 
-        .recommended-header {
+        .recommended-header,
+        .my-setting-header {
           margin: 16px 0;
           display: flex;
           align-items: center;
@@ -325,12 +364,14 @@ export default {
           }
         }
 
-        .recommended-list {
+        .recommended-list,
+        .my-setting-list {
           display: flex;
           flex-direction: column;
           overflow-y: auto;
 
-          .recommended-item {
+          .recommended-item,
+          .my-setting-item {
             height: 95px;
             min-height: 95px;
             margin-bottom: 16px;
@@ -339,7 +380,8 @@ export default {
             border-radius: 10px;
             display: flex;
 
-            .recommended-item-left {
+            .recommended-item-left,
+            .my-setting-item-left {
               padding: 10px 0;
               display: flex;
               flex-direction: column;
@@ -369,7 +411,8 @@ export default {
               }
             }
 
-            .recommended-item-right {
+            .recommended-item-right,
+            .my-setting-item-right {
               margin-left: auto;
               display: flex;
               align-items: center;

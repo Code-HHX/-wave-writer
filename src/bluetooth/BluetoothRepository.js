@@ -524,6 +524,16 @@ class BluetoothRepository {
     this.connectDevice(device);
   }
 
+  async cancelSearch() {
+    let bluetooth;
+    if (navigator.bluetooth2) {
+      bluetooth = navigator.bluetooth2;
+    } else {
+      bluetooth = navigator.bluetooth;
+    }
+    bluetooth.cancelSearch();
+  }
+
   didDisconnect(e) {
     log("设备连接断开");
     this._server = null;

@@ -152,7 +152,7 @@
             <div class="info-content">
               <div class="info-row">
                 <div class="info-row-left">Device Model</div>
-                <div class="info-row-right">{{getInsertDeviceName}}</div>
+                <div class="info-row-right">{{ getInsertDeviceName }}</div>
               </div>
               <div class="info-row">
                 <div class="info-row-left">ID</div>
@@ -172,7 +172,7 @@
               </div>
               <div class="info-row">
                 <div class="info-row-left">Brand</div>
-                <div class="info-row-right">{{brandName}}</div>
+                <div class="info-row-right">{{ brandName }}</div>
               </div>
             </div>
           </div>
@@ -253,9 +253,7 @@
         </div>
         <div v-else-if="loadDeviceSettingStatus === 0" class="error-info">
           <div>{{ errorMessage }}</div>
-          <div class="try-again"
-              @click="reloadDeviceSetting"
-          >
+          <div class="try-again" @click="reloadDeviceSetting">
             Try again
           </div>
         </div>
@@ -292,9 +290,7 @@ export default {
     };
   },
   created() {},
-  mounted() {
-
-  },
+  mounted() {},
   watch: {},
   computed: {
     ...mapState({
@@ -365,7 +361,6 @@ export default {
       setTimeout(() => {
         this.loadDeviceSettingStatus = 1;
       }, 1000);
-
     },
     async onClickSelectModel(model) {
       this.selectModel = model;

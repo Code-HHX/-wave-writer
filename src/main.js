@@ -28,7 +28,8 @@ import {
   Icon,
   Tab,
   Tabs,
-  Loading
+  Loading,
+  Divider
 } from "vant";
 
 Vue.use(Popup);
@@ -41,8 +42,9 @@ Vue.use(Slider);
 Vue.use(Icon);
 Vue.use(Tab);
 Vue.use(Tabs);
-Vue.use(Waves);
 Vue.use(Loading);
+Vue.use(Divider);
+Vue.use(Waves);
 
 //全局暴露api接口
 Vue.prototype.$api = api;
