@@ -388,7 +388,6 @@ export default {
     //   this.myChart.resize();
     // });
     // this.getVoltageOne();
-
     const diySetting = new WriterSetting();
     diySetting.modeName = "DIY";
     this.modelList = [diySetting];

@@ -24,7 +24,7 @@ export const routes = [
     path: "/Home",
     name: "Home",
     component: () => import("@/views/Home.vue"),
-    meta: { auth: true },
+    meta: { auth: true, keepAlive: true },
     auth: false //是否登录鉴权
   },
   {

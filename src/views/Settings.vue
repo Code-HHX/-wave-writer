@@ -36,6 +36,7 @@
           class="voltage-tabs"
           v-model="activeSetting"
           animated
+          swipeable
           color="#6649C4"
           line-width="140px"
           line-height="6px"
@@ -47,7 +48,22 @@
             <div class="recommended">
               <div class="recommended-header">
                 Hot
-                <span>Filter <img src="@/assets/icons/icon_filter.png"/></span>
+                <!-- 过滤气泡弹出框 Filter -->
+                <van-popover
+                  v-model="showFilterPopover"
+                  trigger="click"
+                  placement="bottom-end"
+                  :actions="filterList"
+                  @select="onSelectFilter"
+                  :get-container="getContainer"
+                  :close-on-click-action="false"
+                >
+                  <template #reference>
+                    <span class="recommended-header-filter">
+                      Filter <img src="@/assets/icons/icon_filter.png" />
+                    </span>
+                  </template>
+                </van-popover>
               </div>
               <div class="recommended-list">
                 <div
@@ -84,15 +100,15 @@
             </div>
           </van-tab>
           <van-tab title="My Settings" name="mySettings">
-            <div class="my-setting">
+            <div class="my-setting" v-if="mySettingList.length > 0">
               <div class="my-setting-header">
-                Hot
-                <span>Filter <img src="@/assets/icons/icon_filter.png"/></span>
+                <img src="@/assets/icons/icon_create.png" />
+                Create
               </div>
               <div class="my-setting-list">
                 <div
                   class="my-setting-item"
-                  v-for="(item, index) in recommendedList"
+                  v-for="(item, index) in mySettingList"
                   :key="index"
                 >
                   <div class="my-setting-item-left">
@@ -122,6 +138,18 @@
                 </div>
               </div>
             </div>
+            <div class="my-setting" v-else>
+              <div class="my-setting-no-setting">
+                There is no setting
+                <van-button
+                  class="no-setting-create-button"
+                  type="default"
+                  @click="onClickCreateMySetting"
+                >
+                  Create one
+                </van-button>
+              </div>
+            </div>
           </van-tab>
         </van-tabs>
       </div>
@@ -134,6 +162,14 @@ export default {
   name: "Settings",
   data() {
     return {
+      showFilterPopover: false,
+      filterList: [
+        { text: "Omni hub", className: "" },
+        { text: "Rosin", className: "" },
+        { text: "Apple bomb", className: "" },
+        { text: "Banana", className: "" }
+      ],
+      selectFilter: "",
       selectVoltage: [
         {
           title: "Wind Land"
@@ -197,7 +233,8 @@ export default {
           explain: "Best Experience for rosin (Description)", //说明
           usageState: false //使用状态
         }
-      ]
+      ],
+      mySettingList: []
     };
   },
   created() {},
@@ -223,6 +260,25 @@ export default {
       }
       this.recommendedList[index].usageState = !this.recommendedList[index]
         .usageState;
+    },
+    onClickCreateMySetting() {},
+    getContainer() {
+      // 返回一个特定的 DOM 节点，作为挂载的父节点
+      return document.querySelector(".recommended-header-filter");
+    },
+    onSelectFilter(item, index) {
+      if (item) {
+        if (item.text == this.selectFilter) {
+          item.className = "";
+          this.selectFilter = "";
+          return;
+        }
+        this.filterList.forEach(element => {
+          element.className = "";
+        });
+        item.className = "active-filter";
+        this.selectFilter = item.text;
+      }
     }
   }
 };
@@ -317,6 +373,7 @@ export default {
     }
 
     .voltage-setting {
+      height: 100%;
       margin-top: 10px;
       padding: 0 16px;
       background: #ffffff;
@@ -361,6 +418,12 @@ export default {
               width: 20px;
               height: 20px;
             }
+          }
+
+          img {
+            width: 22px;
+            height: 22px;
+            margin-right: 10px;
           }
         }
 
@@ -435,8 +498,42 @@ export default {
             }
           }
         }
+
+        .my-setting-no-setting {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          font-size: 16px;
+          font-weight: 400;
+          color: #555555;
+
+          .no-setting-create-button {
+            height: 40px;
+            margin-top: 20px;
+            border-radius: 20px;
+            background: #f1edff;
+            font-size: 16px;
+            font-weight: 400;
+            color: #6649c4;
+          }
+        }
       }
     }
   }
+}
+/deep/ .van-popover {
+  .active-filter {
+    color: #6649c4;
+    background: #f1edff;
+    border-radius: 8px;
+  }
+}
+/deep/ .van-popover__action-text {
+  justify-content: flex-start;
+}
+/deep/ .van-hairline--bottom::after {
+  border-bottom-width: 0px;
 }
 </style>

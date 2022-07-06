@@ -72,7 +72,6 @@ export const STATE_CURRENT_HUB_SETTING = "current_hub_setting"; //预设参数�
 export const STATE_DEVICE_ID = "device_id"; //预设参数是否改变
 export const STATE_IS_DEVICE_SUPPORT_READ = "is_device_support_read"; //预设参数是否改变
 
-
 export const STATE_SCAN_DEVICE_LIST = "scan_device_list"; //扫描的蓝牙
 
 export default {
