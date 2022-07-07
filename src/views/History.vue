@@ -17,7 +17,9 @@
           :finished="finished"
           finished-text="No more data..."
           loading-text="Loading more..."
-          error-text="Request network error."
+          :error.sync="error"
+          error-text="Load fail! Click reload"
+          finished-text="No more data"
           @load="onLoad"
         >
           <div
@@ -86,8 +88,9 @@ export default {
       refreshing: false,
       loading: false,
       finished: false,
+      error: false,
       historyList: [],
-      pageNum: 0
+      pageNum: 1
     };
   },
   created() {},
@@ -117,34 +120,43 @@ export default {
       if (this.refreshing) {
         this.pageNum = 1;
         this.historyList = [];
-      } else {
-        this.pageNum += 1;
       }
-      let history = await writer.curveHistory(this.pageNum);
-      log(history);
-      this.historyList = this.historyList.concat(
-        history.map(item => {
-          const setting = new WriterSetting();
-          setting.id = item.id;
-          setting.diyVoltage = item.heatingVoltage
-            .split(",")
-            .slice(0, 6)
-            .map(item => parseInt(item));
-          setting.isSupportNfc = item.nfcSettings === 1;
-          setting.isSupportPreheat = item.preheatSetting === 1;
-          setting.modeName = item.modeName;
-          setting.preheatTime = item.preheatTime;
-          setting.preheatVoltage = item.preheatVoltage;
-          setting.createTime = item.createTime;
-          return setting;
-        })
-      );
+      try {
+        let response = await writer.curveHistory(this.pageNum);
+        const history = response.data;
+        const total = response.total;
+        log(history);
+        this.historyList = this.historyList.concat(
+          history.map(item => {
+            const setting = new WriterSetting();
+            setting.id = item.id;
+            setting.diyVoltage = item.heatingVoltage
+              .split(",")
+              .slice(0, 6)
+              .map(item => parseInt(item));
+            setting.isSupportNfc = item.nfcSettings === 1;
+            setting.isSupportPreheat = item.preheatSetting === 1;
+            setting.modeName = item.modeName;
+            setting.preheatTime = item.preheatTime;
+            setting.preheatVoltage = item.preheatVoltage;
+            setting.createTime = item.createTime;
+            return setting;
+          })
+        );;
 
-      //刷新结束
-      if (this.refreshing) {
-        this.refreshing = false;
-      } else {
+        //刷新结束
+        if (this.refreshing) {
+          this.refreshing = false;
+        } else {
+          this.loading = false;
+        }
+        if (this.historyList.length >= total) {
+          this.finished = true;
+        }
+        this.pageNum += 1;
+      }catch (e) {
         this.loading = false;
+        this.error = true;
       }
     }
   }

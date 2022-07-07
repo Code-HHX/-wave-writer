@@ -23,7 +23,7 @@ const writer = {
       params,
       { showLoading: false }
     );
-    return response.data;
+    return response;
   },
   async uploadConfig(
     modeId,
@@ -64,7 +64,7 @@ const writer = {
       { pageNum, pageSize: 10 },
       { showLoading: false }
     );
-    return response.data;
+    return response;
   }
 };
 

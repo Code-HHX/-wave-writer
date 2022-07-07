@@ -530,7 +530,10 @@ export default {
         this.showDisconnectPopup = true;
       } else {
         bluetoothRepository.startPair();
-        this.showBluetoothPopup = true;
+        if (window.hasOwnProperty("receiveScanDevice")) {
+          this.showBluetoothPopup = true;
+        }
+
       }
     },
     onClickConnectDevice(device) {

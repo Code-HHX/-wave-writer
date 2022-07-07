@@ -517,7 +517,7 @@ class BluetoothRepository {
         DEVICE_WRITE_SERVER_UUID,
         BATTERY_SERVICE_UUID
       ],
-      token: window.localStorage.getItem("omin-token")
+      token: null
     });
 
     this.device = device;
