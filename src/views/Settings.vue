@@ -9,7 +9,7 @@
         @click="onClickHeaderReturn()"
       />
       Temperature Setting
-      <div class="header-save">Save</div>
+      <div class="header-save" @click="onClickSave">Save</div>
     </div>
     <div class="content">
       <div class="my-voltage">
@@ -44,6 +44,7 @@
           title-inactive-color="#999999"
           title-active-color="#6649c4"
         >
+          <!-- Recommended -->
           <van-tab title="Recommended" name="recommended">
             <div class="recommended" v-if="recommendedList.length > 0">
               <div class="recommended-header">
@@ -72,7 +73,7 @@
                 finished-text="No more data..."
                 loading-text="Loading more..."
                 error-text="Request network error."
-                :error.sync="loadTab1Error"
+                :error.sync="load_error_tab1"
                 :immediate-check="false"
                 @load="onLoadTab1"
               >
@@ -100,7 +101,9 @@
                   <div class="recommended-item-right">
                     <van-button
                       type="default"
-                      @click="onClickApply(index)"
+                      @click="
+                        onClickApply(index, item.checked, 'recommendedList')
+                      "
                       :class="item.checked ? 'button-cancel' : 'button-use'"
                       >{{ item.checked ? "Cancel" : "Use" }}</van-button
                     >
@@ -114,44 +117,57 @@
               </div>
             </div>
           </van-tab>
+          <!-- My Settings -->
           <van-tab title="My Settings" name="mySettings">
             <div class="my-setting" v-if="mySettingList.length > 0">
               <div class="my-setting-header">
                 <img src="@/assets/icons/icon_create.png" />
                 Create
               </div>
-              <div class="my-setting-list">
+              <van-list
+                class="my-setting-list"
+                v-model="loading_tab2"
+                :finished="finished_tab2"
+                finished-text="No more data..."
+                loading-text="Loading more..."
+                error-text="Request network error."
+                :error.sync="load_error_tab2"
+                :immediate-check="false"
+                @load="onLoadTab2"
+              >
                 <div
                   class="my-setting-item"
                   v-for="(item, index) in mySettingList"
-                  :key="index"
+                  :key="item.id"
                 >
                   <div class="my-setting-item-left">
                     <div class="item-left-title">
-                      {{ item.text }}
+                      {{ item.modeName }}
                       <div
                         class="item-left-label"
-                        v-for="(label, index1) in item.label"
+                        v-for="(label, index1) in item.flavorName"
                         :key="index1"
                       >
                         {{ label }}
                       </div>
                     </div>
-                    <div class="item-left-msg">{{ item.used }} used</div>
+                    <div class="item-left-msg">{{ item.useCount }} used</div>
                     <div class="item-left-msg">
-                      {{ item.explain }}
+                      {{ item.description }}
                     </div>
                   </div>
                   <div class="my-setting-item-right">
                     <van-button
                       type="default"
-                      @click="onClickApply(index)"
-                      :class="item.usageState ? 'button-cancel' : 'button-use'"
-                      >{{ item.usageState ? "Cancel" : "Use" }}</van-button
+                      @click="
+                        onClickApply(index, item.checked, 'mySettingsList')
+                      "
+                      :class="item.checked ? 'button-cancel' : 'button-use'"
+                      >{{ item.checked ? "Cancel" : "Use" }}</van-button
                     >
                   </div>
                 </div>
-              </div>
+              </van-list>
             </div>
             <div class="my-setting" v-else>
               <div class="my-setting-no-setting">
@@ -178,23 +194,24 @@ export default {
   data() {
     return {
       showFilterPopover: false,
-      filterList: [
-        { text: "Omni hub", className: "" },
-        { text: "Rosin", className: "" },
-        { text: "Apple bomb", className: "" },
-        { text: "Banana", className: "" }
-      ],
+      filterList: [],
       selectFilter: "",
       selectVoltage: [],
       activeSetting: "recommended", //recommended or mySettings
       recommendedList: [],
       mySettingList: [],
       pageNum_tab1: 1,
+
       total_tab1: 0,
       loading_tab1: false,
-      loadTab1Error: false,
+      load_error_tab1: false,
       finished_tab1: false,
-      pageNum_tab2: 1
+
+      pageNum_tab2: 1,
+      total_ta2: 0,
+      loading_tab2: false,
+      load_error_tab2: false,
+      finished_tab2: false
     };
   },
   created() {
@@ -202,18 +219,64 @@ export default {
   },
   mounted() {
     this.getRecommendedList();
+    this.getfilterByRecommend();
+    this.getMySettingsList();
   },
   watch: {},
   computed: {},
   methods: {
+    onClickSave() {
+      let idList = [];
+      idList = this.selectVoltage.map(item => {
+        return item.id;
+      });
+      this.$api.writer
+        .saveUseSettings({
+          id: idList
+        })
+        .then(res => {
+          if (res.code == 200) {
+            this.$toast({
+              type: "success",
+              duration: "1000",
+              position: "middle",
+              message: res.message
+            });
+            setTimeout(() => {
+              this.$router.replace({
+                name: "Home",
+                params: {
+                  refresh: true
+                }
+              });
+            }, 1000);
+          } else {
+            this.$toast({
+              type: "fail",
+              duration: "2000",
+              position: "middle",
+              message: res.message
+            });
+          }
+        })
+        .catch(error => {});
+    },
     async onLoadTab1() {
-      console.log("触发");
       this.pageNum_tab1++;
       await this.getRecommendedList();
       this.loading_tab1 = false;
 
       if (this.recommendedList.length >= this.total_tab1) {
         this.finished_tab1 = true;
+      }
+    },
+    async onLoadTab2() {
+      this.pageNum_tab2++;
+      await this.getMySettingsList();
+      this.loading_tab2 = false;
+
+      if (this.mySettingList.length >= this.total_tab2) {
+        this.finished_tab2 = true;
       }
     },
     async getRecommendedList() {
@@ -227,7 +290,7 @@ export default {
             res.data.forEach(element => {
               element.checked = false;
               this.selectVoltage.forEach(item => {
-                if (element.modeName == item.modeName) {
+                if (element.id == item.id) {
                   element.checked = true;
                   return;
                 }
@@ -235,53 +298,136 @@ export default {
             });
             this.recommendedList = this.recommendedList.concat(res.data);
             this.total_tab1 = res.total;
+            if (res.total <= 10) {
+              this.finished_tab1 = true;
+            }
           } else {
-            this.loadTab1Error = true;
+            this.load_error_tab1 = true;
           }
         })
         .catch(error => {
-          this.loadTab1Error = true;
+          this.load_error_tab1 = true;
           this.recommendedList = [];
           this.total_tab1 = 0;
-          this.$toast(error);
+        });
+    },
+    async getMySettingsList() {
+      await this.$api.writer
+        .selectMySettingsDetails({
+          pageNum: this.pageNum_tab2,
+          pageSize: 10
+        })
+        .then(res => {
+          if (res.code == 200) {
+            res.data.forEach(element => {
+              element.checked = element.useStatus == 0 ? false : true;
+              this.selectVoltage.forEach(item => {
+                if (element.id == item.id) {
+                  element.checked = true;
+                  return;
+                }
+              });
+            });
+            this.mySettingList = this.mySettingList.concat(res.data);
+            this.total_tab2 = res.total;
+            if (res.total <= 10) {
+              this.finished_tab2 = true;
+            }
+          } else {
+            this.load_error_tab2 = true;
+          }
+        })
+        .catch(error => {
+          this.load_error_tab2 = true;
+          this.mySettingList = [];
+          this.total_tab2 = 0;
+        });
+    },
+    getfilterByRecommend() {
+      this.$api.writer
+        .selectFlavorByRecommend({
+          isRecommend: 0
+        })
+        .then(res => {
+          if (res.code == 200) {
+            this.filterList = res.data;
+          } else {
+            this.filterList = [];
+          }
         });
     },
     onClickHeaderReturn() {
       this.$router.go(-1);
     },
     onClickDeleteMyVoltage(index) {
-      let modeName = this.selectVoltage[index].modeName;
-      if (
-        this.recommendedList.findIndex(item => item.modeName == modeName) != -1
-      ) {
+      if (this.selectVoltage.length == 1) {
+        this.$toast({
+          type: "fail",
+          duration: "3000",
+          position: "middle",
+          message: "At least one voltage curve should be selected."
+        });
+        return;
+      }
+      let modeId = this.selectVoltage[index].id;
+      if (this.recommendedList.findIndex(item => item.id == modeId) != -1) {
         this.recommendedList[
-          this.recommendedList.findIndex(item => item.modeName == modeName)
+          this.recommendedList.findIndex(item => item.id == modeId)
+        ].checked = false;
+      }
+      if (this.mySettingList.findIndex(item => item.id == modeId) != -1) {
+        this.mySettingList[
+          this.mySettingList.findIndex(item => item.id == modeId)
         ].checked = false;
       }
       this.selectVoltage.splice(index, 1);
     },
-    onClickApply(index) {
-      let modeName = this.recommendedList[index].modeName;
-      if (this.selectVoltage.length >= 5) {
+    onClickApply(index, checked, mode) {
+      if (this.selectVoltage.length >= 5 && !checked) {
         this.$toast({
           type: "fail",
           duration: "3000",
-          position: "bottom",
+          position: "middle",
           message: "Only five voltage curves can be selected at most."
         });
         return;
       }
-      this.recommendedList[index].checked = !this.recommendedList[index]
-        .checked;
-      if (this.recommendedList[index].checked) {
-        if (!this.selectVoltage.some(item => item.modeName == modeName)) {
-          this.selectVoltage.push(this.recommendedList[index]);
+      if (this.selectVoltage.length == 1 && checked) {
+        this.$toast({
+          type: "fail",
+          duration: "3000",
+          position: "middle",
+          message: "At least one voltage curve should be selected."
+        });
+        return;
+      }
+      if (mode == "recommendedList") {
+        let modeId = this.recommendedList[index].id;
+        this.recommendedList[index].checked = !this.recommendedList[index]
+          .checked;
+        if (this.recommendedList[index].checked) {
+          if (!this.selectVoltage.some(item => item.id == modeId)) {
+            this.selectVoltage.push(this.recommendedList[index]);
+          }
+        } else {
+          let cancelIndex = this.selectVoltage.findIndex(
+            item => item.id == modeId
+          );
+          this.selectVoltage.splice(cancelIndex, 1);
         }
-      } else {
-        let cancelIndex = this.selectVoltage.findIndex(
-          item => item.modeName == modeName
-        );
-        this.selectVoltage.splice(cancelIndex, 1);
+      } else if (mode == "mySettingsList") {
+        let modeId = this.mySettingList[index].id;
+        this.mySettingList[index].checked = !this.mySettingList[index].checked;
+        if (this.mySettingList[index].checked) {
+          if (!this.selectVoltage.some(item => item.id == modeId)) {
+            this.selectVoltage.push(this.mySettingList[index]);
+          }
+        } else {
+          let cancelIndex = this.selectVoltage.findIndex(
+            item => item.id == modeId
+          );
+          this.selectVoltage.splice(cancelIndex, 1);
+        }
       }
     },
     onClickCreateMySetting() {},
@@ -291,7 +437,7 @@ export default {
     },
     onSelectFilter(item, index) {
       if (item) {
-        if (item.text == this.selectFilter) {
+        if (item.modeName == this.selectFilter) {
           item.className = "";
           this.selectFilter = "";
           return;
@@ -300,7 +446,7 @@ export default {
           element.className = "";
         });
         item.className = "active-filter";
-        this.selectFilter = item.text;
+        this.selectFilter = item.modeName;
       }
     }
   }
@@ -350,7 +496,10 @@ export default {
     .my-voltage {
       padding: 16px;
       display: flex;
+      height: 130px;
       min-height: 130px;
+      max-height: 130px;
+      overflow: hidden;
       flex-direction: column;
       background: #ffffff;
 
@@ -365,6 +514,7 @@ export default {
         flex-wrap: wrap;
         justify-content: flex-start;
         align-items: center;
+        overflow-y: auto;
 
         .my-voltage-item {
           height: 35px;

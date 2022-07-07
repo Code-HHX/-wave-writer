@@ -92,7 +92,7 @@ service.interceptors.response.use(
     //接口请求异常，抛出异常信息
     Toast.fail({
       duration: 2000,
-      message: "Server Error",
+      message: error.message,
       closeOnClick: false,
       closeOnClickOverlay: false
     });

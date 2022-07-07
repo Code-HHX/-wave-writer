@@ -25,6 +25,17 @@ const writer = {
     );
     return response;
   },
+  async saveUseSettings(params = {}) {
+    let response = await requestPost("/curve/saveUseSettings", params);
+    return response;
+  },
+  async selectFlavorByRecommend(params = {}) {
+    let response = await requestGetForm(
+      "/curve/selectFlavorByRecommend",
+      params
+    );
+    return response;
+  },
   async uploadConfig(
     modeId,
     modeName,

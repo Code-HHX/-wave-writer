@@ -189,7 +189,7 @@ export default {
       this.$toast({
         type: "success",
         duration: "1000",
-        position: "bottom",
+        position: "middle",
         message: "send success."
       });
       this.time = 60;

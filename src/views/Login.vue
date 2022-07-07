@@ -121,13 +121,7 @@ export default {
             this.showTips = true;
           }
         })
-        .catch(error => {
-          this.$toast({
-            type: "fail",
-            duration: "2000",
-            message: error
-          });
-        });
+        .catch(error => {});
 
       // this.$router.replace("Home");
     },

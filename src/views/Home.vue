@@ -412,7 +412,7 @@ export default {
   },
   async created() {},
   async activated() {
-    const { setting } = this.$route.params;
+    const { setting, refresh } = this.$route.params;
     if (setting) {
       Object.assign(this.modelList[0], setting);
       this.modelList[0].id = 0;
@@ -421,6 +421,13 @@ export default {
       this.modelList[0].diyVoltage = [].concat(origin);
       this.curveModel = 0;
       this.$refs.modelSelect.scrollTo(0, 0);
+    }
+    if (refresh) {
+      let writerCurves = await api.writer.selectCustomFirmwareSettings();
+      await this.$store.dispatch("loadWriterCurves", writerCurves);
+      const diySetting = this.getDiySetting();
+      this.modelList = [diySetting].concat(this.getCurveModes());
+      this.curveModel = 0;
     }
   },
   async mounted() {
@@ -517,7 +524,7 @@ export default {
         this.$toast({
           type: "fail",
           duration: "3000",
-          position: "bottom",
+          position: "middle",
           message: "Five voltage curves can be set at most."
         });
         return;
@@ -530,16 +537,26 @@ export default {
         this.showDisconnectPopup = true;
       } else {
         bluetoothRepository.startPair();
-        if (window.hasOwnProperty("receiveScanDevice")) {
+        //如果浏览器有receiveScanDevice发送蓝牙设备列表则走web方式，没有走原生
+        if (Object.prototype.hasOwnProperty.call(window, "receiveScanDevice")) {
           this.showBluetoothPopup = true;
         }
-
       }
     },
     onClickConnectDevice(device) {
       if (device) bluetoothRepository.connectDevice(device, true);
     },
     onClickSettingsView() {
+      if (!this.isConnected) {
+        this.$toast({
+          type: "fail",
+          duration: "1000",
+          position: "center",
+          message: "Not connected"
+        });
+        return;
+      }
+
       this.$router.push("SettingsView");
     },
     onClickUpload() {
