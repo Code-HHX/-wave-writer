@@ -15,7 +15,7 @@
         <van-list
           v-model="loading"
           :finished="finished"
-          finished-text="No more data..."
+          finished-text="No more data"
           loading-text="Loading more..."
           :error.sync="error"
           error-text="Load fail! Click reload"

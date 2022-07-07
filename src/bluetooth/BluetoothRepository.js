@@ -434,7 +434,19 @@ class BluetoothRepository {
         this.didReconnectDevice.bind(this)
       );
     }
+    if (navigator.bluetooth2 && navigator.bluetooth2.addEventListener) {
+      navigator.bluetooth2.addEventListener(
+        "reconnectDevice",
+        this.didReconnectDevice.bind(this)
+      );
+    }
 
+    if (navigator.bluetooth2 && navigator.bluetooth2.addEventListener) {
+      navigator.bluetooth2.addEventListener(
+        "receiveScanDevice",
+        this.onReceiveScanDevice.bind(this)
+      );
+    }
     if (navigator.bluetooth && navigator.bluetooth.addEventListener) {
       navigator.bluetooth.addEventListener(
         "receiveScanDevice",
