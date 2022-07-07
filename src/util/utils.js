@@ -8,7 +8,13 @@
 
 //验证变量是否为空
 export function isNullAndEmpty(obj) {
-  if (obj == null || obj == "" || obj == undefined || obj.trim() == "") {
+  if (
+    obj == null ||
+    obj == "" ||
+    obj == undefined ||
+    obj.trim() == "" ||
+    obj == "null"
+  ) {
     return true;
   } else {
     return false;

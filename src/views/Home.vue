@@ -391,7 +391,6 @@ import { WriterSetting } from "@/bluetooth/BluetoothData";
 import { mapGetters, mapState } from "vuex";
 import bluetoothRepository from "@/bluetooth/BluetoothRepository";
 
-import store from "@/store";
 import log from "@/util/log";
 import api from "@/api";
 import { Toast } from "vant";
@@ -411,20 +410,8 @@ export default {
       showLogoutPopup: false
     };
   },
-  async created() {
-    log("created");
-    const diySetting = this.getDiySetting();
-    const curveModes = this.getCurveModes();
-    if (curveModes === null) {
-      //登录后，没数据的话，从网络获取
-      await store.dispatch("loadWriterCurves");
-      this.modelList = [diySetting].concat(this.getCurveModes());
-    } else {
-      this.modelList = [diySetting].concat(curveModes);
-    }
-  },
+  async created() {},
   async activated() {
-    log("created");
     const { setting } = this.$route.params;
     if (setting) {
       Object.assign(this.modelList[0], setting);
@@ -437,7 +424,17 @@ export default {
     }
   },
   async mounted() {
-    log("mounted");
+    console.log("mounted");
+    const diySetting = this.getDiySetting();
+    const curveModes = this.getCurveModes();
+    if (curveModes === null) {
+      //登录后，没数据的话，从网络获取
+      let writerCurves = await api.writer.selectCustomFirmwareSettings();
+      await this.$store.dispatch("loadWriterCurves", writerCurves);
+      this.modelList = [diySetting].concat(this.getCurveModes());
+    } else {
+      this.modelList = [diySetting].concat(curveModes);
+    }
     // this.myChart = echarts.init(document.getElementById("voltageOne"));
     // window.addEventListener("resize", () => {
     //   this.myChart.resize();this.$route.params.setting
@@ -617,6 +614,7 @@ export default {
       if (value) {
         this.showMenuPopup = false;
         this.showLogoutPopup = false;
+        this.$store.dispatch("logout");
         setTimeout(() => {
           this.$router.replace("Login");
         }, 100);

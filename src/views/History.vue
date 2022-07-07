@@ -15,7 +15,9 @@
         <van-list
           v-model="loading"
           :finished="finished"
-          finished-text="No more data"
+          finished-text="No more data..."
+          loading-text="Loading more..."
+          error-text="Request network error."
           @load="onLoad"
         >
           <div
@@ -76,7 +78,6 @@
 import writer from "@/api/writer";
 import log from "@/util/log";
 import { WriterSetting } from "@/bluetooth/BluetoothData";
-import store from "@/store";
 
 export default {
   name: "History",

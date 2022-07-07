@@ -7,7 +7,7 @@
 -->
 <template>
   <div id="app">
-    <keep-alive>
+    <keep-alive v-if="isLoggedIn">
       <router-view v-if="$route.meta.keepAlive" />
     </keep-alive>
     <router-view v-if="!$route.meta.keepAlive" />
@@ -15,10 +15,29 @@
 </template>
 
 <script>
+import {
+  KEY_LOCAL_STORAGE_TOKEN,
+  KEY_LOCAL_STORAGE_USERINFO
+} from "@/config/LocalStoreKey";
 export default {
   name: "home",
   data() {
-    return {};
+    return {
+      isLoggedIn: false
+    };
+  },
+  watch: {
+    //退出登录移除keep-alive
+    $route(to, from) {
+      // if the route changes...
+      let token = localStorage.getItem(KEY_LOCAL_STORAGE_TOKEN);
+      if (!this.$utils.isNullAndEmpty(token)) {
+        // firebase returns null if user logged out
+        this.isLoggedIn = true;
+      } else {
+        this.isLoggedIn = false;
+      }
+    }
   },
   mounted() {
     //#region 滚动 使输入框处在窗口的中间高度

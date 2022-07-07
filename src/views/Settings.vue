@@ -69,7 +69,11 @@
                 class="recommended-list"
                 v-model="loading_tab1"
                 :finished="finished_tab1"
-                finished-text="没有更多了"
+                finished-text="No more data..."
+                loading-text="Loading more..."
+                error-text="Request network error."
+                :error.sync="loadTab1Error"
+                :immediate-check="false"
                 @load="onLoadTab1"
               >
                 <div
@@ -186,48 +190,61 @@ export default {
       recommendedList: [],
       mySettingList: [],
       pageNum_tab1: 1,
-      PageNum_tab2: 1,
+      total_tab1: 0,
       loading_tab1: false,
-      finished_tab1: false
+      loadTab1Error: false,
+      finished_tab1: false,
+      pageNum_tab2: 1
     };
   },
   created() {
     this.selectVoltage = this.$route.params.selectVoltage;
   },
   mounted() {
-    this.$api.writer
-      .selectRecommendSettingsDetails({
-        pageNum: this.pageNum_tab1,
-        pageSize: 5
-      })
-      .then(res => {
-        res.forEach(element => {
-          element.checked = false;
-          this.selectVoltage.forEach(item => {
-            if (element.modeName == item.modeName) {
-              element.checked = true;
-              return;
-            }
-          });
-        });
-        this.recommendedList = res;
-        console.log(this.recommendedList);
-      })
-      .catch(error => {
-        this.$toast(error);
-      });
+    this.getRecommendedList();
   },
   watch: {},
   computed: {},
   methods: {
-    onLoad() {
-      setTimeout(() => {
-        this.loading = false;
+    async onLoadTab1() {
+      console.log("触发");
+      this.pageNum_tab1++;
+      await this.getRecommendedList();
+      this.loading_tab1 = false;
 
-        if (this.recommendedList.length >= 40) {
-          this.finished = true;
-        }
-      }, 1000);
+      if (this.recommendedList.length >= this.total_tab1) {
+        this.finished_tab1 = true;
+      }
+    },
+    async getRecommendedList() {
+      await this.$api.writer
+        .selectRecommendSettingsDetails({
+          pageNum: this.pageNum_tab1,
+          pageSize: 10
+        })
+        .then(res => {
+          if (res.code == 200) {
+            res.data.forEach(element => {
+              element.checked = false;
+              this.selectVoltage.forEach(item => {
+                if (element.modeName == item.modeName) {
+                  element.checked = true;
+                  return;
+                }
+              });
+            });
+            this.recommendedList = this.recommendedList.concat(res.data);
+            this.total_tab1 = res.total;
+          } else {
+            this.loadTab1Error = true;
+          }
+        })
+        .catch(error => {
+          this.loadTab1Error = true;
+          this.recommendedList = [];
+          this.total_tab1 = 0;
+          this.$toast(error);
+        });
     },
     onClickHeaderReturn() {
       this.$router.go(-1);
@@ -435,7 +452,6 @@ export default {
 
         .recommended-list,
         .my-setting-list {
-          height: 100%;
           display: flex;
           flex-direction: column;
           overflow-y: auto;

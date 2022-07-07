@@ -2,20 +2,26 @@ import { requestGet, requestGetForm, requestPost } from "../config/http-json";
 
 const writer = {
   async selectCustomFirmwareSettings() {
-    let response = await requestGetForm("/curve/selectCustomFirmwareSettings");
+    let response = await requestGetForm(
+      "/curve/selectCustomFirmwareSettings",
+      {},
+      { showLoading: false }
+    );
     return response.data;
   },
   async selectRecommendSettingsDetails(params = {}) {
     let response = await requestGetForm(
       "/curve/selectRecommendSettingsDetails",
-      params
+      params,
+      { showLoading: false }
     );
-    return response.data;
+    return response;
   },
   async selectMySettingsDetails(params = {}) {
     let response = await requestGetForm(
       "/curve/selectMySettingsDetails",
-      params
+      params,
+      { showLoading: false }
     );
     return response.data;
   },

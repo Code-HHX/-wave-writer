@@ -7,7 +7,6 @@
  */
 import Vue from "vue";
 import VueRouter from "vue-router";
-import Store from "@/store";
 import { KEY_LOCAL_STORAGE_TOKEN } from "./config/LocalStoreKey";
 
 Vue.use(VueRouter);
@@ -17,49 +16,44 @@ export const routes = [
     path: "/Login",
     name: "Login",
     component: () => import("@/views/Login.vue"),
-    meta: {},
-    auth: false //是否登录鉴权
+    meta: { auth: false }
   },
   {
     path: "/Home",
     name: "Home",
     component: () => import("@/views/Home.vue"),
-    meta: { auth: true, keepAlive: true },
-    auth: false //是否登录鉴权
+    meta: { auth: true, keepAlive: true }
   },
   {
     path: "/ResetPassword",
     name: "ResetPassword",
     component: () => import("@/views/ResetPassword.vue"),
-    meta: { auth: true },
-    auth: false //是否登录鉴权
+    meta: { auth: false }
   },
   {
     path: "/History",
     name: "History",
     component: () => import("@/views/History.vue"),
-    meta: { auth: true },
-    auth: false //是否登录鉴权
+    meta: { auth: true }
   },
   {
     path: "/Settings",
     name: "Settings",
     component: () => import("@/views/Settings.vue"),
-    meta: { auth: true },
-    auth: false //是否登录鉴权
+    meta: { auth: true }
   },
   {
     path: "/SettingsView",
     name: "SettingsView",
     component: () => import("@/views/SettingsView.vue"),
-    meta: { auth: true },
-    auth: false //是否登录鉴权
+    meta: { auth: true }
   },
   {
     path: "*",
     redirect: {
-      name: "Login"
-    }
+      name: "Home"
+    },
+    meta: { auth: true }
   }
 ];
 
@@ -85,10 +79,10 @@ router.beforeEach((to, from, next) => {
       next();
     } else {
       next({
-        path: "/",
+        path: "/Login",
         //跳转时传递参数到登录页面，以便登录后可以跳转到对应页面
         query: {
-          redirect: to.fullPath
+          //redirect: to.fullPath
         }
       });
     }

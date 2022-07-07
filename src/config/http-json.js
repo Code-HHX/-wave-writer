@@ -44,6 +44,7 @@ service.interceptors.request.use(
       ) {
         Toast.loading("Loading...");
         if (config.data && config.data.showLoading) {
+          console.log(config.data.showLoading);
           delete config.data.showLoading;
         }
       }
@@ -75,7 +76,7 @@ service.interceptors.response.use(
       Toast.clear();
     }
     const code = response.data.code;
-    if (code === 200) {
+    if (code === 200 || code === 514 || code === 556 || code === 518) {
       //接口请求正常 直接返回结果
       return response;
     } else if (code === 401) {
@@ -119,19 +120,19 @@ export function requestGet(url, params = {}, data = null) {
 //#endregion
 
 //#region Get请求(form表单提交)
-export function requestGetForm(url, params = {}) {
+export function requestGetForm(url, params = {}, data = null) {
   return new Promise((resolve, reject) => {
     service({
       url: url,
       method: "get",
-      data: null,
+      data: data,
       params,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded"
       }
     })
       .then(response => {
-        resolve(response.data);
+        if (response) resolve(response.data);
       })
       .catch(error => {
         reject(error);

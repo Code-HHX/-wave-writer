@@ -56,8 +56,6 @@
 </template>
 
 <script>
-import store from "@/store";
-
 export default {
   name: "Login",
   data() {
@@ -76,6 +74,11 @@ export default {
     }
   },
   computed: {},
+  watch: {
+    showTips(value) {
+      if (!value) this.tipsMsg = "";
+    }
+  },
   methods: {
     onClickForgot() {
       this.$router.push("ResetPassword");
@@ -102,10 +105,29 @@ export default {
         return;
       }
 
-      store.dispatch("login", {
-        userName: this.email,
-        password: this.pwd
-      });
+      this.$api.user
+        .login({
+          userName: this.email,
+          password: this.pwd
+        })
+        .then(res => {
+          if (res.code == 200) {
+            this.$store.dispatch("login", res.data);
+            setTimeout(() => {
+              this.$router.replace("Home");
+            }, 500);
+          } else {
+            this.tipsMsg = res.message;
+            this.showTips = true;
+          }
+        })
+        .catch(error => {
+          this.$toast({
+            type: "fail",
+            duration: "2000",
+            message: error
+          });
+        });
 
       // this.$router.replace("Home");
     },
