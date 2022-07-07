@@ -15,11 +15,10 @@
         <van-list
           v-model="loading"
           :finished="finished"
-          finished-text="No more data..."
+          finished-text="No more data"
           loading-text="Loading more..."
           :error.sync="error"
           error-text="Load fail! Click reload"
-          finished-text="No more data"
           @load="onLoad"
         >
           <div
@@ -142,7 +141,7 @@ export default {
             setting.createTime = item.createTime;
             return setting;
           })
-        );;
+        );
 
         //刷新结束
         if (this.refreshing) {
