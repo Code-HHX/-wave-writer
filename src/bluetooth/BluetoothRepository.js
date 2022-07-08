@@ -8,7 +8,7 @@ import StoreType, {
 
 import router from "@/router";
 import { DeviceId, WriterSetting } from "./BluetoothData";
-import { BLUETOOTH_MODULE_NAME } from "./store/StoreType";
+import { BLUETOOTH_MODULE_NAME, STATE_CURRENT_HUB_SETTING } from "./store/StoreType";
 
 //设备写服务与Characteristic
 const DEVICE_READ_SERVICE_UUID = "0000180a-0000-1000-8000-00805f9b34fb"; //读取服务
@@ -1766,6 +1766,7 @@ class BluetoothRepository {
     );
     const command = controlCommand.generateCommand();
     await this._cacheServices.readService.notify.writeValue(command.buffer);
+    store.commit(`${BLUETOOTH_MODULE_NAME}${STATE_CURRENT_HUB_SETTING}`, writerSetting);
   }
 }
 
