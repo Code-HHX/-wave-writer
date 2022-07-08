@@ -31,6 +31,12 @@ export const routes = [
     meta: { auth: false }
   },
   {
+    path: "/Register",
+    name: "Register",
+    component: () => import("@/views/Register.vue"),
+    meta: { auth: false }
+  },
+  {
     path: "/History",
     name: "History",
     component: () => import("@/views/History.vue"),

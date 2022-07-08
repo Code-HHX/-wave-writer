@@ -182,7 +182,7 @@
               Preheat
               <van-switch
                 style="margin-left:auto;"
-                v-model="hubSetting.isSupportPreheat"
+                v-model="writerSetting.isSupportPreheat"
                 active-color="#66DCA5"
                 inactive-color="#D6CDF2"
                 size="18"
@@ -397,7 +397,8 @@ export default {
 
   .header {
     width: 100%;
-    height: 70px;
+    height: 60px;
+    min-height: 60px;
     background: #6649c4;
     display: flex;
     align-items: center;

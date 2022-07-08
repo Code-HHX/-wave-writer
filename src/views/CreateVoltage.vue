@@ -17,7 +17,7 @@
           ref="modeName"
           class="info-input"
           type="text"
-          v-model="newVoltage.modeName"
+          v-model.trim="newVoltage.modeName"
           placeholder="Please enter name"
           maxlength="25"
         />
@@ -26,7 +26,7 @@
           ref="description"
           class="pwd"
           type="text"
-          v-model="newVoltage.description"
+          v-model.trim="newVoltage.description"
           placeholder="Please enter description"
           maxlength="50"
         />
@@ -284,7 +284,10 @@ export default {
       flavorList: [],
       checkFlavorList: [], //选中未确定口味列表
       selectFlavorList: [], //选中已确定口味列表
-      showFlavorPopup: false
+      showFlavorPopup: false,
+      activeSetting: "",
+      beForm: "",
+      divSetting: {}
     };
   },
   created() {
@@ -307,12 +310,52 @@ export default {
       }
     });
   },
-  mounted() {},
+  mounted() {
+    this.activeSetting = this.$route.params;
+    this.beForm = this.$route.params.beForm;
+    this.divSetting = this.$route.params.divSetting;
+
+    if (this.divSetting) {
+      this.voltageCurve = this.divSetting.diyVoltage;
+      this.newVoltage.nfcSettings = this.divSetting.isSupportNfc ? "1" : "0";
+      this.newVoltage.preheatSetting = this.divSetting.isSupportPreheat
+        ? "1"
+        : "0";
+      this.newVoltage.preheatTime = this.divSetting.preheatTime;
+      this.newVoltage.preheatVoltage = this.divSetting.preheatVoltage;
+      this.newVoltage.temperature = this.divSetting.diyVoltage.toString();
+    }
+
+    //挂载成功后给pop事件绑定一个方法
+    // 如果支持 popstate （一般移动端都支持）
+    if (window.history && window.history.pushState) {
+      // 往历史记录里面添加一条新的当前页面的url
+      history.pushState(null, null, document.URL);
+      // 给 popstate 绑定一个方法用来监听页面返回
+      window.addEventListener("popstate", this.back, false); //false阻止默认事件
+    }
+  },
+  destroyed() {
+    window.removeEventListener("popstate", this.back, false); //false阻止默认事件
+  },
   watch: {},
   computed: {},
   methods: {
+    back() {
+      this.$router.replace({
+        name: this.beForm == "Home" ? "Home" : "Settings",
+        params: {
+          activeSetting: "mySettings"
+        }
+      });
+    },
     onClickHeaderReturn() {
-      this.$router.go(-1);
+      this.$router.replace({
+        name: this.beForm == "Home" ? "Home" : "Settings",
+        params: {
+          activeSetting: "mySettings"
+        }
+      });
     },
     onTouchmoveVoltage(e) {},
     onChangeVoltageCurve(index) {},
@@ -332,6 +375,7 @@ export default {
         this.$toast({
           type: "fail",
           duration: "2000",
+          forbidClick: "true",
           position: "middle",
           message: "Description cannot be empty."
         });
@@ -348,10 +392,16 @@ export default {
             type: "success",
             duration: "1500",
             position: "middle",
+            forbidClick: "true",
             message: res.message
           });
           setTimeout(() => {
-            this.$router.go(-1);
+            this.$router.replace({
+              name: "Settings",
+              params: {
+                activeSetting: "mySettings"
+              }
+            });
           }, 1500);
         } else {
           this.$toast({
@@ -409,7 +459,8 @@ export default {
 
   .header {
     width: 100%;
-    height: 70px;
+    height: 60px;
+    min-height: 60px;
     background: #6649c4;
     display: flex;
     align-items: center;
