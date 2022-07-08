@@ -397,7 +397,8 @@ export default {
 
   .header {
     width: 100%;
-    height: 70px;
+    height: 60px;
+    min-height: 60px;
     background: #6649c4;
     display: flex;
     align-items: center;

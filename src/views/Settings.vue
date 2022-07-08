@@ -66,7 +66,14 @@
                         selectFilter != '' ? 'color:#6649c4' : 'color:#999999'
                       "
                     >
-                      Filter <img src="@/assets/icons/icon_filter.png" />
+                      Filter
+                      <img
+                        :src="
+                          selectFilter != ''
+                            ? require('@/assets/icons/icon_filter_select.png')
+                            : require('@/assets/icons/icon_filter.png')
+                        "
+                      />
                     </span>
                   </template>
                 </van-popover>
@@ -127,9 +134,32 @@
           <!-- My Settings -->
           <van-tab title="My Settings" name="mySettings">
             <div class="my-setting" v-if="mySettingList.length > 0">
-              <div class="my-setting-header" @click="onClickCreateMySetting">
-                <img src="@/assets/icons/icon_create.png" />
-                Create
+              <div class="my-setting-header">
+                <div class="header-left" @click="onClickCreateMySetting">
+                  <img src="@/assets/icons/icon_create.png" />
+                  Create
+                </div>
+                <!-- 过滤气泡弹出框 Filter -->
+                <van-popover
+                  v-model="showFilterPopover2"
+                  trigger="click"
+                  placement="bottom-end"
+                  :actions="filterList2"
+                  @select="onSelectFilter"
+                  :get-container="getContainer2"
+                  :close-on-click-action="true"
+                >
+                  <template #reference>
+                    <span
+                      class="my-setting-header-filter"
+                      :style="
+                        selectFilter2 != '' ? 'color:#6649c4' : 'color:#999999'
+                      "
+                    >
+                      Filter <img src="@/assets/icons/icon_filter.png" />
+                    </span>
+                  </template>
+                </van-popover>
               </div>
               <van-list
                 class="my-setting-list"
@@ -203,8 +233,11 @@ export default {
   data() {
     return {
       showFilterPopover: false,
+      showFilterPopover2: false,
       filterList: [],
+      filterList2: [],
       selectFilter: "",
+      selectFilter2: "",
       selectVoltage: [],
       activeSetting: "recommended", //recommended or mySettings
       recommendedList: [],
@@ -238,10 +271,23 @@ export default {
     }
   },
   mounted() {
-    console.log("mounted");
-    this.getRecommendedList();
+    let activeSetting = this.$route.params.activeSetting;
+    if (activeSetting) this.activeSetting = activeSetting;
     this.getfilterByRecommend();
+    this.getRecommendedList();
     this.getMySettingsList();
+
+    //挂载成功后给pop事件绑定一个方法
+    // 如果支持 popstate （一般移动端都支持）
+    if (window.history && window.history.pushState) {
+      // 往历史记录里面添加一条新的当前页面的url
+      history.pushState(null, null, document.URL);
+      // 给 popstate 绑定一个方法用来监听页面返回
+      window.addEventListener("popstate", this.onClickHeaderReturn, false); //false阻止默认事件
+    }
+  },
+  destroyed() {
+    window.removeEventListener("popstate", this.onClickHeaderReturn, false); //false阻止默认事件
   },
   watch: {},
   computed: {},
@@ -259,7 +305,8 @@ export default {
           if (res.code == 200) {
             this.$toast({
               type: "success",
-              duration: "1500",
+              duration: "1000",
+              forbidClick: "true",
               position: "middle",
               message: res.message
             });
@@ -270,7 +317,7 @@ export default {
                   refresh: true
                 }
               });
-            }, 1500);
+            }, 1000);
           } else {
             this.$toast({
               type: "fail",
@@ -319,7 +366,6 @@ export default {
               });
             });
             this.recommendedList = this.recommendedList.concat(res.data);
-            console.log(this.recommendedList);
             this.total_tab1 = res.total;
             if (res.total <= 10) {
               this.finished_tab1 = true;
@@ -338,7 +384,8 @@ export default {
       await this.$api.writer
         .selectMySettingsDetails({
           pageNum: this.pageNum_tab2,
-          pageSize: 10
+          pageSize: 10,
+          flavorId: this.selectFilter2
         })
         .then(res => {
           if (res.code == 200) {
@@ -381,9 +428,23 @@ export default {
             this.filterList = [];
           }
         });
+      this.$api.writer
+        .selectFlavorByRecommend({
+          isRecommend: 1
+        })
+        .then(res => {
+          if (res.code == 200) {
+            res.data.forEach(element => {
+              element.text = element.modeName;
+            });
+            this.filterList2 = res.data;
+          } else {
+            this.filterList2 = [];
+          }
+        });
     },
     onClickHeaderReturn() {
-      this.$router.go(-1);
+      this.$router.replace("Home");
     },
     onClickDeleteMyVoltage(index) {
       if (this.selectVoltage.length == 1) {
@@ -457,14 +518,18 @@ export default {
       }
     },
     onClickCreateMySetting() {
-      this.$router.push("CreateVoltage");
+      this.$router.replace("CreateVoltage");
     },
     getContainer() {
       // 返回一个特定的 DOM 节点，作为挂载的父节点
       return document.querySelector(".recommended-header-filter");
     },
+    getContainer2() {
+      // 返回一个特定的 DOM 节点，作为挂载的父节点
+      return document.querySelector(".my-setting-header-filter");
+    },
     onSelectFilter(item, index) {
-      if (item) {
+      if (this.activeSetting == "recommended" && item) {
         if (item.id == this.selectFilter) {
           item.className = "";
           this.selectFilter = "";
@@ -481,6 +546,23 @@ export default {
         this.total_tab1 = 0;
         this.recommendedList = [];
         this.getRecommendedList();
+      } else if (this.activeSetting == "mySettings" && item) {
+        if (item.id == this.selectFilter2) {
+          item.className = "";
+          this.selectFilter2 = "";
+        } else {
+          this.filterList2.forEach(element => {
+            element.className = "";
+          });
+          item.className = "active-filter";
+          this.selectFilter2 = item.id;
+        }
+
+        this.pageNum_tab2 = 1;
+        this.finished_tab2 = false;
+        this.total_tab2 = 0;
+        this.mySettingList = [];
+        this.getMySettingsList();
       }
     }
   }
@@ -498,7 +580,8 @@ export default {
 
   .header {
     width: 100%;
-    height: 70px;
+    height: 60px;
+    min-height: 60px;
     background: #6649c4;
     display: flex;
     align-items: center;
@@ -554,7 +637,7 @@ export default {
           height: 35px;
           background: #f1edff;
           border-radius: 30px;
-          font-size: 13px;
+          font-size: 12px;
           font-weight: 400;
           color: #6649c4;
           display: flex;
@@ -572,8 +655,8 @@ export default {
 
           img {
             margin-left: 8px;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
           }
         }
       }
@@ -612,6 +695,10 @@ export default {
           font-weight: bold;
           color: #555555;
 
+          .header-left {
+            display: flex;
+            align-items: center;
+          }
           span {
             margin-left: auto;
             font-size: 16px;

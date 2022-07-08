@@ -45,7 +45,7 @@ service.interceptors.request.use(
       ) {
         Toast.loading("Loading...");
         if (config.data && config.data.showLoading) {
-          console.log(config.data.showLoading);
+          //console.log(config.data.showLoading);
           delete config.data.showLoading;
         }
       }
@@ -79,7 +79,12 @@ service.interceptors.response.use(
     const code = response.data.code;
     if (
       code === 200 ||
+      code === 400 ||
       code === 514 ||
+      code === 520 ||
+      code === 521 ||
+      code === 524 ||
+      code === 527 ||
       code === 518 ||
       code === 556 ||
       code === 1500
@@ -89,6 +94,13 @@ service.interceptors.response.use(
     } else if (code === 401) {
       store.dispatch("tokenExpired");
       bluetoothRepository.disconnect();
+    } else {
+      Toast.fail({
+        duration: 2000,
+        message: response.data.message,
+        closeOnClick: true,
+        closeOnClickOverlay: true
+      });
     }
 
     currentTask.splice(0, currentTask.length);

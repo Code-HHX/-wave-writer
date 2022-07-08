@@ -19,7 +19,7 @@
           ref="email"
           class="input-email"
           type="text"
-          v-model="email"
+          v-model.trim="email"
           placeholder="Email address"
           maxlength="30"
         />
@@ -69,7 +69,7 @@
           ref="new-pwd"
           class="input-email"
           type="password"
-          v-model="pwd"
+          v-model.trim="pwd"
           placeholder="New password"
           maxlength="30"
         />
@@ -77,7 +77,7 @@
           ref="confirm-pwd"
           class="input-email"
           type="password"
-          v-model="confirmPwd"
+          v-model.trim="confirmPwd"
           placeholder="Confirm password"
           maxlength="30"
         />
@@ -137,7 +137,7 @@ export default {
   data() {
     return {
       step: 1,
-      email: "807288057@qq.com",
+      email: "",
       time: 0,
       showTips: false,
       tipsMsg: "",
@@ -149,11 +149,28 @@ export default {
     };
   },
   created() {},
-  mounted() {},
+  mounted() {
+    if (process.env.NODE_ENV === "dev") {
+      this.email = "807288057@qq.com";
+    }
+  },
   watch: {
     verificationCode(value) {
       if (value.length >= 6) {
-        this.step++;
+        this.$api.user
+          .verificationCode({
+            code: this.verificationCode,
+            email: this.email
+          })
+          .then(res => {
+            if (res.code == 200) {
+              this.step++;
+            } else {
+              this.tipsMsg = res.message;
+              this.showTips = true;
+              this.verificationCode = "";
+            }
+          });
       }
     }
   },
@@ -186,15 +203,26 @@ export default {
         this.showTips = true;
         return;
       }
-      this.$toast({
-        type: "success",
-        duration: "1000",
-        position: "middle",
-        message: "send success."
-      });
-      this.time = 60;
-      this.countDown();
-      this.step++;
+      this.$api.user
+        .sendEmail({
+          email: this.email
+        })
+        .then(res => {
+          if (res.code == 200) {
+            this.$toast({
+              type: "success",
+              duration: "1000",
+              position: "middle",
+              message: "send success."
+            });
+            this.time = 60;
+            this.countDown();
+            this.step++;
+          } else {
+            this.tipsMsg = res.message;
+            this.showTips = true;
+          }
+        });
     },
     countDown() {
       this.time = 60;
@@ -206,7 +234,45 @@ export default {
       }, 1000);
     },
     onClickReset() {
-      this.showSuccessPopup = true;
+      if (this.$utils.isNullAndEmpty(this.pwd)) {
+        this.tipsMsg = "New password cannot be empty.";
+        this.showTips = true;
+        return;
+      }
+      if (this.$utils.isNullAndEmpty(this.confirmPwd)) {
+        this.tipsMsg = "Confirm password password cannot be empty.";
+        this.showTips = true;
+        return;
+      }
+      if (this.pwd.length < 6) {
+        this.tipsMsg = "New password length cannot be less than 6 digits.";
+        this.showTips = true;
+        return;
+      }
+      if (this.confirmPwd.length < 6) {
+        this.tipsMsg = "Confirm password length cannot be less than 6 digits.";
+        this.showTips = true;
+        return;
+      }
+      if (this.pwd != this.confirmPwd) {
+        this.tipsMsg = "The two entered passwords do not match.";
+        this.showTips = true;
+        return;
+      }
+      this.$api.user
+        .retrievePassword({
+          code: this.verificationCode,
+          email: this.email,
+          password: this.pwd
+        })
+        .then(res => {
+          if (res.code == 200) {
+            this.showSuccessPopup = true;
+          } else {
+            this.tipsMsg = res.message;
+            this.showTips = true;
+          }
+        });
     },
     onClickTipsOK() {
       this.showTips = false;
@@ -229,7 +295,8 @@ export default {
 
   .header {
     width: 100%;
-    height: 70px;
+    height: 60px;
+    min-height: 60px;
     background: #6649c4;
     display: flex;
     align-items: center;
@@ -326,6 +393,7 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
 
     .tips-button {
       margin-top: 30px;

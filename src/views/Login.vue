@@ -8,7 +8,7 @@
         ref="email"
         class="email"
         type="text"
-        v-model="email"
+        v-model.trim="email"
         placeholder="Email"
         maxlength="30"
       />
@@ -16,7 +16,7 @@
         ref="email"
         class="pwd"
         type="password"
-        v-model="pwd"
+        v-model.trim="pwd"
         placeholder="Password"
         minlength="6"
         maxlength="20"
@@ -30,7 +30,9 @@
       >
         Log in
       </van-button>
-      <div class="apply">No account?&nbsp;<span>Apply&nbsp;></span></div>
+      <div class="apply" @click="onClickApply">
+        No account?&nbsp;<span>Apply&nbsp;></span>
+      </div>
     </div>
     <!-- Tips提示 -->
     <van-popup
@@ -127,6 +129,9 @@ export default {
     },
     onClickTipsOK() {
       this.showTips = false;
+    },
+    onClickApply() {
+      this.$router.push("Register");
     }
   }
 };

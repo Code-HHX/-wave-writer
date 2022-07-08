@@ -35,12 +35,12 @@
             :class="curveModel === index ? 'model-item-active' : ''"
             v-for="(item, index) in modelList"
             :key="index"
+            @click="onClickModelItem(index)"
           >
             {{ item.modeName }}
             <div
               class="model-button"
               :class="curveModel === index ? 'model-button-active' : ''"
-              @click="onClickModelItem(index)"
             >
               {{ curveModel === index ? "Used" : "Use" }}
             </div>
@@ -79,7 +79,7 @@
         <div
           id="voltageTwo"
           class="voltage-two"
-          style="width:100%;height:calc(20vh)"
+          style="width:100%;height:calc(18vh)"
           @touchmove.prevent="onTouchmoveVoltage"
         >
           <van-slider
@@ -256,12 +256,12 @@
         <img src="@/assets/logo/logo_wave_writer.png" alt="" />
       </div>
       <div class="menu-content">
-        <div class="menu-item">
+        <!-- <div class="menu-item">
           <img src="@/assets/icons/icon_user.png" alt="" />My Profiles
         </div>
         <div class="menu-item">
           <img src="@/assets/icons/icon_pwd.png" alt="" />Change Password
-        </div>
+        </div> -->
         <div class="menu-footer">
           <span class="menu-footer-left">V 1.0.0</span>
           <span class="menu-footer-right" @click="onClickSignOut"
@@ -355,6 +355,7 @@
       </div>
     </van-popup>
     <!-- 退出登录弹窗 Logout -->
+
     <van-popup
       class="save-popup"
       v-model="showLogoutPopup"
@@ -395,9 +396,11 @@ import log from "@/util/log";
 import api from "@/api";
 import { Toast } from "vant";
 import writer from "../api/writer";
+import preventBack from "vue-prevent-browser-back";
 
 export default {
   name: "Home",
+  mixins: [preventBack], //注入
   data() {
     return {
       curveModel: 0,
@@ -431,7 +434,6 @@ export default {
     }
   },
   async mounted() {
-    console.log("mounted");
     const diySetting = this.getDiySetting();
     const curveModes = this.getCurveModes();
     if (curveModes === null) {
@@ -464,7 +466,7 @@ export default {
   },
   watch: {
     deviceList(value) {
-      console.log(value);
+      //console.log(value);
     },
     isConnected(value) {
       if (value) this.showBluetoothPopup = false;
@@ -503,7 +505,7 @@ export default {
           selectVoltage.push(model);
         }
       });
-      this.$router.push({
+      this.$router.replace({
         name: "Settings",
         params: {
           selectVoltage
@@ -520,17 +522,16 @@ export default {
     },
 
     onClickSave() {
-      if (this.modelList.length >= 6) {
-        this.$toast({
-          type: "fail",
-          duration: "3000",
-          position: "middle",
-          message: "Five voltage curves can be set at most."
-        });
-        return;
-      } else {
-        this.showSavePopup = true;
-      }
+      // if (!this.isConnected) {
+      //   this.$toast({
+      //     type: "fail",
+      //     duration: "2000",
+      //     position: "middle",
+      //     message: "Please Connect Device"
+      //   });
+      //   return;
+      // }
+      this.showSavePopup = true;
     },
     onClickDisconnectDevice() {
       if (this.isConnected) {
@@ -631,12 +632,16 @@ export default {
       this.showSavePopup = false;
     },
     onClickSaveSure() {
-      if (!this.isConnected) {
-        Toast.fail("Please Connect Device");
-        return;
-      }
       this.showSavePopup = false;
-      this.$router.push("Settings");
+      setTimeout(() => {
+        this.$router.replace({
+          name: "CreateVoltage",
+          params: {
+            beForm: "Home",
+            divSetting: this.modelList[0]
+          }
+        });
+      }, 200);
     },
     onClickHistory() {
       this.$router.push("History");
