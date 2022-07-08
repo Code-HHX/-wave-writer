@@ -57,10 +57,15 @@
                   :actions="filterList"
                   @select="onSelectFilter"
                   :get-container="getContainer"
-                  :close-on-click-action="false"
+                  :close-on-click-action="true"
                 >
                   <template #reference>
-                    <span class="recommended-header-filter">
+                    <span
+                      class="recommended-header-filter"
+                      :style="
+                        selectFilter != '' ? 'color:#6649c4' : 'color:#999999'
+                      "
+                    >
                       Filter <img src="@/assets/icons/icon_filter.png" />
                     </span>
                   </template>
@@ -85,6 +90,8 @@
                   <div class="recommended-item-left">
                     <div class="item-left-title">
                       {{ item.modeName }}
+                    </div>
+                    <div class="item-left-label-list">
                       <div
                         class="item-left-label"
                         v-for="(label, index1) in item.flavorName"
@@ -93,7 +100,6 @@
                         {{ label }}
                       </div>
                     </div>
-                    <div class="item-left-msg">{{ item.useCount }} used</div>
                     <div class="item-left-msg">
                       {{ item.description }}
                     </div>
@@ -107,6 +113,7 @@
                       :class="item.checked ? 'button-cancel' : 'button-use'"
                       >{{ item.checked ? "Cancel" : "Use" }}</van-button
                     >
+                    <div class="item-right-msg">{{ item.useCount }} used</div>
                   </div>
                 </div>
               </van-list>
@@ -120,7 +127,7 @@
           <!-- My Settings -->
           <van-tab title="My Settings" name="mySettings">
             <div class="my-setting" v-if="mySettingList.length > 0">
-              <div class="my-setting-header">
+              <div class="my-setting-header" @click="onClickCreateMySetting">
                 <img src="@/assets/icons/icon_create.png" />
                 Create
               </div>
@@ -143,6 +150,8 @@
                   <div class="my-setting-item-left">
                     <div class="item-left-title">
                       {{ item.modeName }}
+                    </div>
+                    <div class="item-left-label-list">
                       <div
                         class="item-left-label"
                         v-for="(label, index1) in item.flavorName"
@@ -151,7 +160,7 @@
                         {{ label }}
                       </div>
                     </div>
-                    <div class="item-left-msg">{{ item.useCount }} used</div>
+                    <!-- <div class="item-left-msg">{{ item.useCount }} used</div> -->
                     <div class="item-left-msg">
                       {{ item.description }}
                     </div>
@@ -215,9 +224,21 @@ export default {
     };
   },
   created() {
-    this.selectVoltage = this.$route.params.selectVoltage;
+    if (this.$route.params.selectVoltage) {
+      this.selectVoltage = this.$route.params.selectVoltage;
+      window.localStorage.setItem(
+        "selectVoltage",
+        JSON.stringify(this.selectVoltage)
+      );
+    } else {
+      this.selectVoltage = JSON.parse(
+        window.localStorage.getItem("selectVoltage")
+      );
+      if (!this.selectVoltage) this.selectVoltage = [];
+    }
   },
   mounted() {
+    console.log("mounted");
     this.getRecommendedList();
     this.getfilterByRecommend();
     this.getMySettingsList();
@@ -238,7 +259,7 @@ export default {
           if (res.code == 200) {
             this.$toast({
               type: "success",
-              duration: "1000",
+              duration: "1500",
               position: "middle",
               message: res.message
             });
@@ -249,7 +270,7 @@ export default {
                   refresh: true
                 }
               });
-            }, 1000);
+            }, 1500);
           } else {
             this.$toast({
               type: "fail",
@@ -283,7 +304,8 @@ export default {
       await this.$api.writer
         .selectRecommendSettingsDetails({
           pageNum: this.pageNum_tab1,
-          pageSize: 10
+          pageSize: 10,
+          flavorId: this.selectFilter
         })
         .then(res => {
           if (res.code == 200) {
@@ -297,6 +319,7 @@ export default {
               });
             });
             this.recommendedList = this.recommendedList.concat(res.data);
+            console.log(this.recommendedList);
             this.total_tab1 = res.total;
             if (res.total <= 10) {
               this.finished_tab1 = true;
@@ -350,6 +373,9 @@ export default {
         })
         .then(res => {
           if (res.code == 200) {
+            res.data.forEach(element => {
+              element.text = element.modeName;
+            });
             this.filterList = res.data;
           } else {
             this.filterList = [];
@@ -430,23 +456,31 @@ export default {
         }
       }
     },
-    onClickCreateMySetting() {},
+    onClickCreateMySetting() {
+      this.$router.push("CreateVoltage");
+    },
     getContainer() {
       // 返回一个特定的 DOM 节点，作为挂载的父节点
       return document.querySelector(".recommended-header-filter");
     },
     onSelectFilter(item, index) {
       if (item) {
-        if (item.modeName == this.selectFilter) {
+        if (item.id == this.selectFilter) {
           item.className = "";
           this.selectFilter = "";
-          return;
+        } else {
+          this.filterList.forEach(element => {
+            element.className = "";
+          });
+          item.className = "active-filter";
+          this.selectFilter = item.id;
         }
-        this.filterList.forEach(element => {
-          element.className = "";
-        });
-        item.className = "active-filter";
-        this.selectFilter = item.modeName;
+
+        this.pageNum_tab1 = 1;
+        this.finished_tab1 = false;
+        this.total_tab1 = 0;
+        this.recommendedList = [];
+        this.getRecommendedList();
       }
     }
   }
@@ -608,8 +642,6 @@ export default {
 
           .recommended-item,
           .my-setting-item {
-            height: 95px;
-            min-height: 95px;
             margin-bottom: 16px;
             padding: 0 16px;
             border: 1px solid #eeeeee;
@@ -618,10 +650,8 @@ export default {
 
             .recommended-item-left,
             .my-setting-item-left {
-              padding: 10px 0;
               display: flex;
               flex-direction: column;
-              justify-content: space-evenly;
 
               .item-left-title {
                 font-size: 16px;
@@ -629,11 +659,19 @@ export default {
                 color: #555555;
                 display: flex;
                 align-items: center;
+                margin: 10px 0;
+              }
+
+              .item-left-label-list {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                margin-left: -2px;
 
                 .item-left-label {
                   font-size: 12px;
                   padding: 0 5px;
-                  margin-left: 5px;
+                  margin: 0 5px 10px 0;
                   color: #6649c4;
                   border-radius: 5px;
                   border: 1px solid #755bca;
@@ -644,6 +682,7 @@ export default {
                 font-size: 13px;
                 font-weight: 400;
                 color: #999999;
+                margin-bottom: 10px;
               }
             }
 
@@ -651,7 +690,10 @@ export default {
             .my-setting-item-right {
               margin-left: auto;
               display: flex;
+              flex-direction: column;
+              justify-content: center;
               align-items: center;
+              position: relative;
 
               .button-cancel {
                 width: 60px;
@@ -667,6 +709,14 @@ export default {
                 background: #6649c4;
                 border-radius: 8px;
                 border: 1px solid #6649c4;
+              }
+
+              .item-right-msg {
+                position: absolute;
+                bottom: 10px;
+                font-size: 13px;
+                font-weight: 400;
+                color: #999999;
               }
             }
           }

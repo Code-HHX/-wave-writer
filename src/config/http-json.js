@@ -10,6 +10,7 @@ import axios from "axios";
 import store from "../store.js";
 import { Toast } from "vant";
 import { KEY_LOCAL_STORAGE_TOKEN } from "./LocalStoreKey";
+import bluetoothRepository from "@/bluetooth/BluetoothRepository";
 //封装axios
 axios.defaults.headers["Content-Type"] = "application/json";
 let currentTask = [];
@@ -76,11 +77,18 @@ service.interceptors.response.use(
       Toast.clear();
     }
     const code = response.data.code;
-    if (code === 200 || code === 514 || code === 556 || code === 518) {
+    if (
+      code === 200 ||
+      code === 514 ||
+      code === 518 ||
+      code === 556 ||
+      code === 1500
+    ) {
       //接口请求正常 直接返回结果
       return response;
     } else if (code === 401) {
       store.dispatch("tokenExpired");
+      bluetoothRepository.disconnect();
     }
 
     currentTask.splice(0, currentTask.length);

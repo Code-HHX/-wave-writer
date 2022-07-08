@@ -576,15 +576,15 @@ export default {
         Math.abs(item)
       );
       try {
-        await bluetoothRepository.writeToWriter(writerSetting)
-      }catch (e) {
+        await bluetoothRepository.writeToWriter(writerSetting);
+      } catch (e) {
         this.$toast({
           type: "fail",
           duration: "1000",
           position: "center",
           message: "Send fail!"
         });
-        return
+        return;
       }
 
       //上传到服务器
@@ -646,6 +646,7 @@ export default {
         this.showMenuPopup = false;
         this.showLogoutPopup = false;
         this.$store.dispatch("logout");
+        bluetoothRepository.disconnect();
         setTimeout(() => {
           this.$router.replace("Login");
         }, 100);

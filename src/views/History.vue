@@ -27,7 +27,7 @@
             :key="index"
           >
             <div class="history-header">
-              <div class="header-title">{{item.modeName}}</div>
+              <div class="header-title">{{ item.modeName }}</div>
               <div class="header-time">{{ item.createTime }}</div>
             </div>
             <div class="item-split"></div>

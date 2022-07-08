@@ -36,6 +36,14 @@ const writer = {
     );
     return response;
   },
+  async selectAllFlavor(params = {}) {
+    let response = await requestGetForm("/curve/selectAllFlavor", params);
+    return response;
+  },
+  async saveVoltageSettings(params = {}) {
+    let response = await requestPost("/curve/saveVoltageSettings", params);
+    return response;
+  },
   async uploadConfig(
     modeId,
     modeName,

@@ -259,7 +259,7 @@
           </div>
         </div>
         <div v-else-if="loadDeviceSettingStatus === 0" class="error-info">
-          <div>{{ errorMessage }}</div>
+          <div class="device-error-msg">{{ errorMessage }}</div>
           <div class="try-again" @click="reloadDeviceSetting">
             Try again
           </div>
@@ -462,7 +462,20 @@ export default {
       flex-direction: column;
       justify-items: center;
       margin-top: 10px;
+      font-size: 20px;
+      font-weight: 400;
+      color: #555555;
+
       .try-again {
+        margin: 0 auto;
+        color: #6649c4;
+        font-size: 16px;
+        width: 120px;
+        height: 40px;
+        line-height: 40px;
+        border: 1px solid #f1edff;
+        background: #f1edff;
+        border-radius: 20px;
         margin-top: 2vh;
       }
     }

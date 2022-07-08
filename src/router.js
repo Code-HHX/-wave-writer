@@ -43,6 +43,12 @@ export const routes = [
     meta: { auth: true }
   },
   {
+    path: "/CreateVoltage",
+    name: "CreateVoltage",
+    component: () => import("@/views/CreateVoltage.vue"),
+    meta: { auth: true }
+  },
+  {
     path: "/SettingsView",
     name: "SettingsView",
     component: () => import("@/views/SettingsView.vue"),
