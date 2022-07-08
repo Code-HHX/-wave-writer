@@ -11,7 +11,14 @@
       History
     </div>
     <div class="content">
-      <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
+      <van-pull-refresh
+        v-model="refreshing"
+        @refresh="onRefresh"
+        pulling-text="Pull down to refresh"
+        loading-text="Loading..."
+        success-text="Refresh success"
+        loosing-text="Release to refresh"
+      >
         <van-list
           v-model="loading"
           :finished="finished"

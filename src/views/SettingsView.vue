@@ -182,7 +182,7 @@
               Preheat
               <van-switch
                 style="margin-left:auto;"
-                v-model="hubSetting.isSupportPreheat"
+                v-model="writerSetting.isSupportPreheat"
                 active-color="#66DCA5"
                 inactive-color="#D6CDF2"
                 size="18"
