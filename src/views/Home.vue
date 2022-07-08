@@ -559,7 +559,7 @@ export default {
 
       this.$router.push("SettingsView");
     },
-    onClickUpload() {
+    async onClickUpload() {
       if (!this.isConnected) {
         this.$toast({
           type: "fail",
@@ -575,7 +575,18 @@ export default {
       writerSetting.diyVoltage = writerSetting.diyVoltage.map(item =>
         Math.abs(item)
       );
-      bluetoothRepository.writeToWriter(writerSetting);
+      try {
+        await bluetoothRepository.writeToWriter(writerSetting)
+      }catch (e) {
+        this.$toast({
+          type: "fail",
+          duration: "1000",
+          position: "center",
+          message: "Send fail!"
+        });
+        return
+      }
+
       //上传到服务器
       let hw = "";
       let fw = "";
