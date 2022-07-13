@@ -645,7 +645,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-:deep(.van-popup) {
+/deep/ .van-popup {
   overflow-y: hidden !important;
 }
 
@@ -689,7 +689,7 @@ export default {
     height: 100%;
     margin-top: 25px;
 
-    :deep(.van-slider--disabled) {
+    /deep/ .van-slider--disabled {
       .van-slider__bar {
         background: #d6cdf2 !important;
       }
@@ -784,7 +784,7 @@ export default {
           color: #555555;
         }
 
-        :deep(.van-button--disabled) {
+        /deep/ .van-button--disabled {
           border: 1px solid #bbbbbb !important;
 
           .van-button__text {
@@ -799,7 +799,7 @@ export default {
           border-radius: 8px;
           border: 1px solid #6649c4;
 
-          :deep(.van-button__text) {
+          /deep/ .van-button__text {
             font-size: 16px;
             font-weight: 400;
             color: #6649c4;
@@ -829,7 +829,7 @@ export default {
           height: 40px;
         }
 
-        :deep(.van-slider) {
+        /deep/ .van-slider {
           margin: 0 auto;
         }
       }

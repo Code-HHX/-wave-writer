@@ -541,7 +541,7 @@ export default {
             height: 40px;
           }
 
-          :deep(.van-slider) {
+          /deep/ .van-slider {
             margin: 0 auto;
           }
         }

@@ -632,7 +632,7 @@ export default {
             height: 40px;
           }
 
-          :deep(.van-slider) {
+          /deep/ .van-slider {
             margin: 0 auto;
           }
         }
@@ -896,7 +896,7 @@ export default {
     }
   }
 
-  :deep(.van-popup) {
+  /deep/ .van-popup {
     overflow: hidden;
   }
 }

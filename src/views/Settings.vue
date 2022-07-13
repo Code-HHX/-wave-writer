@@ -681,12 +681,11 @@ export default {
 
       .voltage-tabs {
         height: 100%;
-
-        :deep(.van-tabs__content) {
+        /deep/ .van-tabs__content {
           height: calc(100% - 45px);
         }
 
-        :deep(.van-tab__pane) {
+        /deep/ .van-tab__pane {
           height: 100%;
         }
       }
@@ -730,11 +729,11 @@ export default {
             margin-right: 10px;
           }
 
-          :deep(.van-popover) {
+          /deep/ .van-popover {
             max-height: 270px;
           }
 
-          :deep(.van-popover__content) {
+          /deep/ .van-popover__content {
             height: 100%;
             overflow-y: auto;
           }
@@ -854,17 +853,17 @@ export default {
     }
   }
 }
-:deep(.van-popover) {
+/deep/ .van-popover {
   .active-filter {
     color: #6649c4;
     background: #f1edff;
     border-radius: 8px;
   }
 }
-:deep(.van-popover__action-text) {
+/deep/ .van-popover__action-text {
   justify-content: flex-start;
 }
-:deep(.van-hairline--bottom::after) {
+/deep/ .van-hairline--bottom::after {
   border-bottom-width: 0px;
 }
 </style>
