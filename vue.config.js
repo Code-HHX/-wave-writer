@@ -5,6 +5,9 @@
  * @LastEditTime: 2022-04-01 17:50:38
  * @Description:
  */
+
+const Timestamp = new Date().getTime();
+
 module.exports = {
   // 项目部署的基础路径
   // 我们默认假设你的应用将会部署在域名的根部，
@@ -16,7 +19,7 @@ module.exports = {
   publicPath: "/",
 
   // 将构建好的文件输出到哪里
-  outputDir: "dist",
+  outputDir: "wavewriter",
 
   // 是否在保存的时候使用 `eslint-loader` 进行检查。
   // 有效的值：`ture` | `false` | `"error"`
@@ -32,7 +35,12 @@ module.exports = {
   chainWebpack: config => {
     config.resolve.symlinks(true);
   },
-  configureWebpack: () => {},
+  configureWebpack: {
+    output: {
+      filename: `[name].${process.env.VUE_APP_VERSION}.${Timestamp}.js`,
+      chunkFilename: `[name].${process.env.VUE_APP_VERSION}.${Timestamp}.js`
+    }
+  },
 
   // vue-loader 选项
   // 查阅 https://vue-loader.vuejs.org/zh-cn/options.html

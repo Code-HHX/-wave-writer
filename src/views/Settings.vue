@@ -51,6 +51,7 @@
                 Hot
                 <!-- 过滤气泡弹出框 Filter -->
                 <van-popover
+                  v-if="filterList.length > 0"
                   v-model="showFilterPopover"
                   trigger="click"
                   placement="bottom-end"
@@ -141,6 +142,7 @@
                 </div>
                 <!-- 过滤气泡弹出框 Filter -->
                 <van-popover
+                  v-if="filterList2.length > 0"
                   v-model="showFilterPopover2"
                   trigger="click"
                   placement="bottom-end"
@@ -148,6 +150,7 @@
                   @select="onSelectFilter"
                   :get-container="getContainer2"
                   :close-on-click-action="true"
+                  :offset="[-1, 8]"
                 >
                   <template #reference>
                     <span
@@ -156,7 +159,14 @@
                         selectFilter2 != '' ? 'color:#6649c4' : 'color:#999999'
                       "
                     >
-                      Filter <img src="@/assets/icons/icon_filter.png" />
+                      Filter
+                      <img
+                        :src="
+                          selectFilter2 != ''
+                            ? require('@/assets/icons/icon_filter_select.png')
+                            : require('@/assets/icons/icon_filter.png')
+                        "
+                      />
                     </span>
                   </template>
                 </van-popover>
@@ -672,11 +682,11 @@ export default {
       .voltage-tabs {
         height: 100%;
 
-        /deep/ .van-tabs__content {
+        :deep(.van-tabs__content) {
           height: calc(100% - 45px);
         }
 
-        /deep/ .van-tab__pane {
+        :deep(.van-tab__pane) {
           height: 100%;
         }
       }
@@ -719,6 +729,15 @@ export default {
             height: 22px;
             margin-right: 10px;
           }
+
+          :deep(.van-popover) {
+            max-height: 270px;
+          }
+
+          :deep(.van-popover__content) {
+            height: 100%;
+            overflow-y: auto;
+          }
         }
 
         .recommended-list,
@@ -734,11 +753,13 @@ export default {
             border: 1px solid #eeeeee;
             border-radius: 10px;
             display: flex;
+            min-height: 95px;
 
             .recommended-item-left,
             .my-setting-item-left {
               display: flex;
               flex-direction: column;
+              justify-content: center;
 
               .item-left-title {
                 font-size: 16px;
@@ -833,17 +854,17 @@ export default {
     }
   }
 }
-/deep/ .van-popover {
+:deep(.van-popover) {
   .active-filter {
     color: #6649c4;
     background: #f1edff;
     border-radius: 8px;
   }
 }
-/deep/ .van-popover__action-text {
+:deep(.van-popover__action-text) {
   justify-content: flex-start;
 }
-/deep/ .van-hairline--bottom::after {
+:deep(.van-hairline--bottom::after) {
   border-bottom-width: 0px;
 }
 </style>

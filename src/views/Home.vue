@@ -279,9 +279,9 @@
     >
       <div class="bluetooth-header">Connect Device</div>
       <div class="bluetooth-content">
-        <van-loading color="#6649C4" size="40" text-size="16px"
-          >Searching...</van-loading
-        >
+        <van-loading color="#6649C4" size="40" text-size="16px">{{
+          bluetoothPopupMsg
+        }}</van-loading>
         <div class="bluetooth-list">
           <div
             class="bluetooth-item"
@@ -386,8 +386,6 @@
 </template>
 
 <script>
-import * as echarts from "echarts";
-import { voltageData } from "@/config/echarts-data";
 import { WriterSetting } from "@/bluetooth/BluetoothData";
 import { mapGetters, mapState } from "vuex";
 import bluetoothRepository from "@/bluetooth/BluetoothRepository";
@@ -408,6 +406,7 @@ export default {
       myChart: {},
       showMenuPopup: false,
       showBluetoothPopup: false,
+      bluetoothPopupMsg: "Searching...",
       showDisconnectPopup: false,
       showSavePopup: false,
       showLogoutPopup: false
@@ -448,7 +447,6 @@ export default {
     // window.addEventListener("resize", () => {
     //   this.myChart.resize();this.$route.params.setting
     // });
-    // this.getVoltageOne();
   },
   computed: {
     ...mapState({
@@ -472,7 +470,10 @@ export default {
       if (value) this.showBluetoothPopup = false;
     },
     showBluetoothPopup(value) {
-      if (!value) bluetoothRepository.cancelSearch();
+      if (!value) {
+        bluetoothRepository.cancelSearch();
+        this.bluetoothPopupMsg = "Searching...";
+      }
     }
   },
   methods: {
@@ -522,15 +523,6 @@ export default {
     },
 
     onClickSave() {
-      // if (!this.isConnected) {
-      //   this.$toast({
-      //     type: "fail",
-      //     duration: "2000",
-      //     position: "middle",
-      //     message: "Please Connect Device"
-      //   });
-      //   return;
-      // }
       this.showSavePopup = true;
     },
     onClickDisconnectDevice() {
@@ -545,7 +537,10 @@ export default {
       }
     },
     onClickConnectDevice(device) {
-      if (device) bluetoothRepository.connectDevice(device, true);
+      if (device) {
+        this.bluetoothPopupMsg = "Connecting...";
+        bluetoothRepository.connectDevice(device, true);
+      }
     },
     onClickSettingsView() {
       if (!this.isConnected) {
@@ -607,20 +602,6 @@ export default {
         writerSetting
       );
     },
-    getVoltageOne() {
-      voltageData.series[0].data = this.voltageNewData;
-      this.showVoltageOne();
-    },
-    showVoltageOne() {
-      if (document.getElementById("voltageOne")) {
-        this.myChart.setOption(voltageData, true);
-      }
-    },
-    //刷新echarts
-    refreshVoltageCurve() {
-      // voltageData.series[0].data = this.voltageNewData;
-      // this.myChart.setOption(voltageData, true);
-    },
     onClickDisconnectCancel() {
       this.showDisconnectPopup = false;
     },
@@ -664,7 +645,7 @@ export default {
 </script>
 
 <style lang="less" scoped>
-/deep/ .van-popup {
+:deep(.van-popup) {
   overflow-y: hidden !important;
 }
 
@@ -708,7 +689,7 @@ export default {
     height: 100%;
     margin-top: 25px;
 
-    /deep/ .van-slider--disabled {
+    :deep(.van-slider--disabled) {
       .van-slider__bar {
         background: #d6cdf2 !important;
       }
@@ -803,7 +784,7 @@ export default {
           color: #555555;
         }
 
-        /deep/ .van-button--disabled {
+        :deep(.van-button--disabled) {
           border: 1px solid #bbbbbb !important;
 
           .van-button__text {
@@ -818,7 +799,7 @@ export default {
           border-radius: 8px;
           border: 1px solid #6649c4;
 
-          /deep/ .van-button__text {
+          :deep(.van-button__text) {
             font-size: 16px;
             font-weight: 400;
             color: #6649c4;
@@ -848,7 +829,7 @@ export default {
           height: 40px;
         }
 
-        /deep/ .van-slider {
+        :deep(.van-slider) {
           margin: 0 auto;
         }
       }

@@ -14,7 +14,6 @@
     "amfe-flexible": "^2.2.1",
     "axios": "^0.26.1",
     "core-js": "^2.6.5",
-    "echarts": "^5.3.3",
     "eslint-config-prettier": "^8.5.0",
     "vant": "^2.12.47",
     "vue": "^2.6.10",

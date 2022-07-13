@@ -361,12 +361,12 @@ export default {
         font-weight: normal;
         color: #ffffff;
 
-        /deep/ .van-button__text {
+        :deep(.van-button__text) {
           display: flex;
         }
       }
 
-      /deep/ .van-password-input__item {
+      :deep(.van-password-input__item) {
         width: 45px;
         height: 45px;
         border-radius: 8px;

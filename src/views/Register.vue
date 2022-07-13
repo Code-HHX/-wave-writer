@@ -205,6 +205,7 @@ export default {
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow-y: auto;
 
     .register-msg {
       margin-top: 16px;
@@ -232,6 +233,8 @@ export default {
     }
 
     .register-confirm {
+      height: 45px;
+      min-height: 45px;
       margin-top: 26px;
       width: 100%;
       background: #6649c4;
@@ -240,6 +243,7 @@ export default {
       font-size: 18px;
       font-weight: normal;
       color: #ffffff;
+      margin-bottom: 50px;
     }
 
     input[type="text"]:focus {

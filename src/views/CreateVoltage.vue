@@ -234,7 +234,7 @@
           @click="showFlavorPopup = false"
         />
         <span class="header-title">Applicable Flavor</span>
-        <span class="header-dome" @click="onClickDome">DOME</span>
+        <span class="header-dome" @click="onClickDome">DONE</span>
       </div>
       <div class="flavor-content">
         <span>Up to 5 can be selected</span>
@@ -243,6 +243,7 @@
             class="flavor-item"
             v-for="(item, index) in flavorList"
             :key="item.id"
+            @click="onClickFlavorCheck(item, index)"
           >
             <img class="flavor-picture" :src="item.flavorPicture" />
             {{ item.modelName }}
@@ -253,7 +254,6 @@
                   ? require('@/assets/icons/icon_checked.png')
                   : require('@/assets/icons/icon_unchecked.png')
               "
-              @click="onClickFlavorCheck(item, index)"
             />
           </div>
         </div>
@@ -632,7 +632,7 @@ export default {
             height: 40px;
           }
 
-          /deep/ .van-slider {
+          :deep(.van-slider) {
             margin: 0 auto;
           }
         }
@@ -885,10 +885,18 @@ export default {
           }
         }
       }
+
+      .flavor-list-empty {
+        text-align: center;
+        margin: 50px 0;
+        font-size: 22px;
+        font-weight: bold;
+        color: #555555;
+      }
     }
   }
 
-  /deep/ .van-popup {
+  :deep(.van-popup) {
     overflow: hidden;
   }
 }
