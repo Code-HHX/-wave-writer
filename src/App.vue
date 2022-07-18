@@ -3,7 +3,7 @@
  * @Date: 2022-03-24 11:49:13
  * @LastEditors: Code-HHX
  * @LastEditTime: 2022-03-24 12:12:57
- * @Description: 
+ * @Description:
 -->
 <template>
   <div id="app">
@@ -65,6 +65,7 @@ body {
   width: 100%;
   height: 100%;
 }
+
 input {
   color: #d6cdf2;
   width: 100%;

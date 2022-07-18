@@ -478,15 +478,19 @@ export default {
   },
   methods: {
     ...mapGetters(["getCurveModes", "getDiySetting"]),
+
     onClickMenu() {
       this.showMenuPopup = true;
     },
+
     onClickMenuReturn() {
       this.showMenuPopup = false;
     },
+
     onClickSignOut() {
       this.showLogoutPopup = true;
     },
+
     onClickModelItem(index) {
       this.curveModel = index;
       Object.assign(this.modelList[0], this.modelList[index]);
@@ -495,6 +499,7 @@ export default {
       const origin = this.modelList[index].diyVoltage;
       this.modelList[0].diyVoltage = [].concat(origin);
     },
+
     onClickSetting() {
       let selectVoltage = [];
       this.modelList.forEach(element => {
@@ -513,6 +518,7 @@ export default {
         }
       });
     },
+
     onTouchmoveVoltage(e) {},
 
     onChangeVoltageCurve(index) {

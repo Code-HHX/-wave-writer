@@ -14,9 +14,9 @@
       <div class="setting-model">
         <button
           class="model-button"
-          :class="selectModel === 'Hub' ? 'model-button-active' : ''"
+          :class="selectModel === 'Wave Writer' ? 'model-button-active' : ''"
           style="margin-right:8px;"
-          @click="onClickSelectModel('Hub')"
+          @click="onClickSelectModel('Wave Writer')"
         >
           Hub
         </button>
@@ -211,8 +211,7 @@
           <!-- Voltage -->
           <div class="info-item">
             <div class="info-title">
-              Voltage Curve
-            </div>
+              Voltage Curve>
             <div class="item-split"></div>
             <div class="info-content">
               <div class="voltage-one">
@@ -276,6 +275,7 @@
 <script>
 import { mapGetters, mapState } from "vuex";
 import bluetoothRepository from "@/bluetooth/BluetoothRepository";
+import { WriterSetting } from "../bluetooth/BluetoothData";
 
 export default {
   name: "SettingView",
@@ -296,7 +296,8 @@ export default {
     }),
     ...mapState("bluetooth", ["deviceId", "insertDeviceName", "writerSetting"]),
     deviceVoltage() {
-      return this.writerSetting.diyVoltage.map(item => item * -1).slice(0, 6);
+      const deviceCurve =  this.writerSetting.diyVoltage.map(item => item * -1).slice(0, 6);
+      return deviceCurve;
     },
     hubVoltage() {
       return this.hubSetting.diyVoltage.map(item => item * -1).slice(0, 6);
@@ -358,6 +359,19 @@ export default {
     ...mapGetters("bluetooth", ["getHubSetting"]),
     onClickHeaderReturn() {
       this.$router.go(-1);
+    },
+    applyToHomePage() {
+      const deviceSetting = this.writerSetting;
+      const setting = new WriterSetting();
+      Object.assign(setting, deviceSetting);
+
+      setting.diyVoltage = [].concat(deviceSetting.diyVoltage.map(item => item * -1)).slice(0, 6);
+      this.$router.replace({
+        name: "Home",
+        params: {
+          setting
+        }
+      });
     },
     async reloadDeviceSetting() {
       this.loadDeviceSettingStatus = 2; //转圈加载
@@ -493,6 +507,16 @@ export default {
         padding: 16px;
         display: flex;
         align-items: center;
+
+        .history-button-apply {
+          height: 30px;
+          margin: 16px 0 16px auto;
+          background: #f1edff;
+          color: #6649c4;
+          border: none;
+          border-radius: 8px;
+          white-space: nowrap;
+        }
       }
 
       .info-content {
