@@ -443,16 +443,14 @@ export default {
     } else {
       this.modelList = [diySetting].concat(curveModes);
     }
-    // this.myChart = echarts.init(document.getElementById("voltageOne"));
-    // window.addEventListener("resize", () => {
-    //   this.myChart.resize();this.$route.params.setting
-    // });
   },
   computed: {
     ...mapState({
       isConnected: state => state.bluetooth.isConnected,
       deviceList: state => state.bluetooth.deviceList,
-      deviceVersion: state => state.bluetooth.deviceVersion
+      deviceVersion: state => state.bluetooth.deviceVersion,
+      macAddress: state=> state.bluetooth.macAddress,
+      cartridgeFlag: state=> state.bluetooth.cartridgeFlag,
     }),
     saveDisabled() {
       if (this.curveModel === 0) {
