@@ -55,6 +55,7 @@ export default new Vuex.Store({
             setting.modeName = item.modeName;
             setting.preheatTime = item.preheatTime;
             setting.preheatVoltage = item.preheatVoltage;
+            setting.heatingRemarks = item.heatingRemarks;
             return setting;
           })
         );

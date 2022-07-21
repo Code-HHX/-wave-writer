@@ -18,7 +18,7 @@
           style="margin-right:8px;"
           @click="onClickSelectModel('Wave Writer')"
         >
-          Hub
+          Wave Writer
         </button>
         <button
           class="model-button"
@@ -30,7 +30,7 @@
         </button>
       </div>
       <!-- Hub模式 -->
-      <div v-show="selectModel === 'Hub'" style="overflow-y: auto;">
+      <div v-show="selectModel === 'Wave Writer'" style="overflow-y: auto;">
         <!-- Info -->
         <div class="info-item">
           <div class="info-title">
@@ -212,6 +212,7 @@
           <div class="info-item">
             <div class="info-title">
               Voltage Curve>
+            </div>
             <div class="item-split"></div>
             <div class="info-content">
               <div class="voltage-one">
@@ -263,11 +264,18 @@
             Try again
           </div>
         </div>
-
         <div v-else class="popup-content info-device-load">
           <van-loading size="60px" />
         </div>
       </div>
+    </div>
+    <div
+      v-show="selectModel === 'Device' && this.loadDeviceSettingStatus == 1"
+      class="footer"
+    >
+      <van-button class="footer-button" type="default" @click="onClickApply">
+        Apply to homepage
+      </van-button>
     </div>
   </div>
 </template>
@@ -281,7 +289,7 @@ export default {
   name: "SettingView",
   data() {
     return {
-      selectModel: "Hub",
+      selectModel: "Wave Writer",
       hubSetting: this.getHubSetting(),
       loadDeviceSettingStatus: 2,
       errorMessage: ""
@@ -296,7 +304,9 @@ export default {
     }),
     ...mapState("bluetooth", ["deviceId", "insertDeviceName", "writerSetting"]),
     deviceVoltage() {
-      const deviceCurve =  this.writerSetting.diyVoltage.map(item => item * -1).slice(0, 6);
+      const deviceCurve = this.writerSetting.diyVoltage
+        .map(item => item * -1)
+        .slice(0, 6);
       return deviceCurve;
     },
     hubVoltage() {
@@ -360,12 +370,17 @@ export default {
     onClickHeaderReturn() {
       this.$router.go(-1);
     },
+    onClickApply() {
+      this.applyToHomePage();
+    },
     applyToHomePage() {
       const deviceSetting = this.writerSetting;
       const setting = new WriterSetting();
       Object.assign(setting, deviceSetting);
 
-      setting.diyVoltage = [].concat(deviceSetting.diyVoltage.map(item => item * -1)).slice(0, 6);
+      setting.diyVoltage = []
+        .concat(deviceSetting.diyVoltage.map(item => item * -1))
+        .slice(0, 6);
       this.$router.replace({
         name: "Home",
         params: {
@@ -433,6 +448,7 @@ export default {
     display: flex;
     overflow: hidden;
     flex-direction: column;
+    margin-bottom: 60px;
 
     .setting-model {
       margin: 16px 0;
@@ -582,6 +598,29 @@ export default {
           }
         }
       }
+    }
+  }
+  .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 60px;
+    min-height: 60px;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0px -2px 6px 1px rgba(0, 0, 0, 0.149);
+
+    .footer-button {
+      widows: calc(100vw - 50px);
+      height: 45px;
+      background: #6649c4;
+      border-radius: 8px;
+      border: 1px solid #6649c4;
+      font-size: 18px;
+      font-weight: normal;
+      color: #ffffff;
     }
   }
 }

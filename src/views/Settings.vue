@@ -44,94 +44,6 @@
           title-inactive-color="#999999"
           title-active-color="#6649c4"
         >
-          <!-- Recommended -->
-          <van-tab title="Recommended" name="recommended">
-            <div class="recommended" v-if="recommendedList.length > 0">
-              <div class="recommended-header">
-                Hot
-                <!-- 过滤气泡弹出框 Filter -->
-                <van-popover
-                  v-if="filterList.length > 0"
-                  v-model="showFilterPopover"
-                  trigger="click"
-                  placement="bottom-end"
-                  :actions="filterList"
-                  @select="onSelectFilter"
-                  :get-container="getContainer"
-                  :close-on-click-action="true"
-                >
-                  <template #reference>
-                    <span
-                      class="recommended-header-filter"
-                      :style="
-                        selectFilter != '' ? 'color:#6649c4' : 'color:#999999'
-                      "
-                    >
-                      Filter
-                      <img
-                        :src="
-                          selectFilter != ''
-                            ? require('@/assets/icons/icon_filter_select.png')
-                            : require('@/assets/icons/icon_filter.png')
-                        "
-                      />
-                    </span>
-                  </template>
-                </van-popover>
-              </div>
-              <van-list
-                class="recommended-list"
-                v-model="loading_tab1"
-                :finished="finished_tab1"
-                finished-text="No more data"
-                loading-text="Loading more..."
-                error-text="Request network error."
-                :error.sync="load_error_tab1"
-                :immediate-check="false"
-                @load="onLoadTab1"
-              >
-                <div
-                  class="recommended-item"
-                  v-for="(item, index) in recommendedList"
-                  :key="index"
-                >
-                  <div class="recommended-item-left">
-                    <div class="item-left-title">
-                      {{ item.modeName }}
-                    </div>
-                    <div class="item-left-label-list">
-                      <div
-                        class="item-left-label"
-                        v-for="(label, index1) in item.flavorName"
-                        :key="index1"
-                      >
-                        {{ label }}
-                      </div>
-                    </div>
-                    <div class="item-left-msg">
-                      {{ item.description }}
-                    </div>
-                  </div>
-                  <div class="recommended-item-right">
-                    <van-button
-                      type="default"
-                      @click="
-                        onClickApply(index, item.checked, 'recommendedList')
-                      "
-                      :class="item.checked ? 'button-cancel' : 'button-use'"
-                      >{{ item.checked ? "Cancel" : "Use" }}</van-button
-                    >
-                    <div class="item-right-msg">{{ item.useCount }} used</div>
-                  </div>
-                </div>
-              </van-list>
-            </div>
-            <div class="recommended" v-else>
-              <div class="my-setting-no-setting">
-                No recommendation yet
-              </div>
-            </div>
-          </van-tab>
           <!-- My Settings -->
           <van-tab title="My Settings" name="mySettings">
             <div class="my-setting" v-if="mySettingList.length > 0">
@@ -188,10 +100,35 @@
                   :key="item.id"
                 >
                   <div class="my-setting-item-left">
-                    <div class="item-left-title">
+                    <div
+                      class="item-left-title"
+                      :style="
+                        item.flavorName == null || item.flavorName == ''
+                          ? 'margin-bottom:5px;'
+                          : 'margin-bottom:0px;'
+                      "
+                    >
                       {{ item.modeName }}
+                      <img
+                        src="@/assets/icons/icon_edit.png"
+                        @click="onClickEditVoltage(item.id)"
+                      />
+                      <img
+                        src="@/assets/icons/icon_delete.png"
+                        @click="
+                          showDeletePopup = true;
+                          deleteIndex = index;
+                        "
+                      />
                     </div>
-                    <div class="item-left-label-list">
+                    <div
+                      class="item-left-label-list"
+                      :style="
+                        item.flavorName != null && item.flavorName != ''
+                          ? 'margin-top:5px;'
+                          : 'margin-top:0px;'
+                      "
+                    >
                       <div
                         class="item-left-label"
                         v-for="(label, index1) in item.flavorName"
@@ -201,7 +138,14 @@
                       </div>
                     </div>
                     <!-- <div class="item-left-msg">{{ item.useCount }} used</div> -->
-                    <div class="item-left-msg">
+                    <div
+                      class="item-left-msg"
+                      :style="
+                        item.description != null && item.description != ''
+                          ? 'margin-top:5px;'
+                          : 'margin-top:0px;'
+                      "
+                    >
                       {{ item.description }}
                     </div>
                   </div>
@@ -231,9 +175,145 @@
               </div>
             </div>
           </van-tab>
+          <!-- Recommended -->
+          <van-tab title="Recommended" name="recommended">
+            <div class="recommended" v-if="recommendedList.length > 0">
+              <div class="recommended-header">
+                Hot
+                <!-- 过滤气泡弹出框 Filter -->
+                <van-popover
+                  v-if="filterList.length > 0"
+                  v-model="showFilterPopover"
+                  trigger="click"
+                  placement="bottom-end"
+                  :actions="filterList"
+                  @select="onSelectFilter"
+                  :get-container="getContainer"
+                  :close-on-click-action="true"
+                >
+                  <template #reference>
+                    <span
+                      class="recommended-header-filter"
+                      :style="
+                        selectFilter != '' ? 'color:#6649c4' : 'color:#999999'
+                      "
+                    >
+                      Filter
+                      <img
+                        :src="
+                          selectFilter != ''
+                            ? require('@/assets/icons/icon_filter_select.png')
+                            : require('@/assets/icons/icon_filter.png')
+                        "
+                      />
+                    </span>
+                  </template>
+                </van-popover>
+              </div>
+              <van-list
+                class="recommended-list"
+                v-model="loading_tab1"
+                :finished="finished_tab1"
+                finished-text="No more data"
+                loading-text="Loading more..."
+                error-text="Request network error."
+                :error.sync="load_error_tab1"
+                :immediate-check="false"
+                @load="onLoadTab1"
+              >
+                <div
+                  class="recommended-item"
+                  v-for="(item, index) in recommendedList"
+                  :key="index"
+                >
+                  <div class="recommended-item-left">
+                    <div
+                      class="item-left-title"
+                      :style="
+                        item.flavorName == null || item.flavorName == ''
+                          ? 'margin-bottom:5px;'
+                          : 'margin-bottom:0px;'
+                      "
+                    >
+                      {{ item.modeName }}
+                    </div>
+                    <div
+                      class="item-left-label-list"
+                      :style="
+                        item.flavorName != null && item.flavorName != ''
+                          ? 'margin-top:5px;'
+                          : 'margin-top:0px;'
+                      "
+                    >
+                      <div
+                        class="item-left-label"
+                        v-for="(label, index1) in item.flavorName"
+                        :key="index1"
+                      >
+                        {{ label }}
+                      </div>
+                    </div>
+                    <div
+                      class="item-left-msg"
+                      :style="
+                        item.description != null && item.description != ''
+                          ? 'margin-top:5px;'
+                          : 'margin-top:0px;'
+                      "
+                    >
+                      {{ item.description }}
+                    </div>
+                  </div>
+                  <div class="recommended-item-right">
+                    <van-button
+                      type="default"
+                      @click="
+                        onClickApply(index, item.checked, 'recommendedList')
+                      "
+                      :class="item.checked ? 'button-cancel' : 'button-use'"
+                      >{{ item.checked ? "Cancel" : "Use" }}</van-button
+                    >
+                    <div class="item-right-msg">{{ item.useCount }} used</div>
+                  </div>
+                </div>
+              </van-list>
+            </div>
+            <div class="recommended" v-else>
+              <div class="my-setting-no-setting">
+                No recommendation yet
+              </div>
+            </div>
+          </van-tab>
         </van-tabs>
       </div>
     </div>
+    <!-- 删除提示弹窗 -->
+    <van-popup
+      class="save-popup"
+      v-model="showDeletePopup"
+      round
+      :style="{ width: '88%' }"
+      :close-on-click-overlay="false"
+    >
+      <div class="save-header">Tips</div>
+      <div class="save-content">
+        <div class="save-content-msg">
+          Are you sure to delete it?
+        </div>
+        <div class="save-footer">
+          <button
+            class="save-footer-cancel"
+            @click="showDeletePopup = false"
+            v-waves
+          >
+            Cancel
+          </button>
+          <button class="save-footer-sure" @click="onClickDeleteSure" v-waves>
+            Sure
+          </button>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
@@ -244,12 +324,14 @@ export default {
     return {
       showFilterPopover: false,
       showFilterPopover2: false,
+      showDeletePopup: false,
+      deleteIndex: "",
       filterList: [],
       filterList2: [],
       selectFilter: "",
       selectFilter2: "",
       selectVoltage: [],
-      activeSetting: "recommended", //recommended or mySettings
+      activeSetting: "mySettings", //recommended or mySettings
       recommendedList: [],
       mySettingList: [],
       pageNum_tab1: 1,
@@ -284,8 +366,8 @@ export default {
     let activeSetting = this.$route.params.activeSetting;
     if (activeSetting) this.activeSetting = activeSetting;
     this.getfilterByRecommend();
-    this.getRecommendedList();
     this.getMySettingsList();
+    this.getRecommendedList();
 
     //挂载成功后给pop事件绑定一个方法
     // 如果支持 popstate （一般移动端都支持）
@@ -574,6 +656,68 @@ export default {
         this.mySettingList = [];
         this.getMySettingsList();
       }
+    },
+    onClickDeleteSure() {
+      if (!this.$utils.isNullAndEmpty(this.deleteIndex)) {
+        this.$api.writer
+          .deleteCurveById({
+            id: this.mySettingList[this.deleteIndex].id
+          })
+          .then(res => {
+            console.log(res);
+            if (res.code === 200) {
+              let voltageIndex = this.selectVoltage.findIndex(
+                item => item.id === this.mySettingList[this.deleteIndex].id
+              );
+              if (voltageIndex != -1)
+                this.selectVoltage.splice(voltageIndex, 1);
+
+              this.mySettingList.splice(this.deleteIndex, 1);
+              this.showDeletePopup = false;
+              setTimeout(() => {
+                this.$toast({
+                  type: "success",
+                  duration: "1500",
+                  forbidClick: "true",
+                  position: "middle",
+                  message: res.message
+                });
+              }, 200);
+            } else {
+              this.showDeletePopup = false;
+              setTimeout(() => {
+                this.$toast({
+                  type: "fail",
+                  duration: "1500",
+                  forbidClick: "true",
+                  position: "middle",
+                  message: res.message
+                });
+              }, 200);
+            }
+          })
+          .catch(error => {
+            this.showDeletePopup = false;
+            setTimeout(() => {
+              this.$toast({
+                type: "fail",
+                duration: "1500",
+                forbidClick: "true",
+                position: "middle",
+                message: error.message
+              });
+            }, 200);
+          });
+      }
+    },
+    onClickEditVoltage(id) {
+      this.$router.replace({
+        name: "CreateVoltage",
+        params: {
+          editId: id,
+          model: "edit"
+        }
+      });
     }
   }
 };
@@ -748,11 +892,11 @@ export default {
           .recommended-item,
           .my-setting-item {
             margin-bottom: 16px;
-            padding: 0 16px;
+            padding: 16px;
             border: 1px solid #eeeeee;
             border-radius: 10px;
             display: flex;
-            min-height: 95px;
+            // min-height: 95px;
 
             .recommended-item-left,
             .my-setting-item-left {
@@ -766,7 +910,12 @@ export default {
                 color: #555555;
                 display: flex;
                 align-items: center;
-                margin: 10px 0;
+
+                img {
+                  width: 19px;
+                  height: 19px;
+                  margin-left: 10px;
+                }
               }
 
               .item-left-label-list {
@@ -778,7 +927,7 @@ export default {
                 .item-left-label {
                   font-size: 12px;
                   padding: 0 5px;
-                  margin: 0 5px 10px 0;
+                  margin: 5px 5px 5px 0;
                   color: #6649c4;
                   border-radius: 5px;
                   border: 1px solid #755bca;
@@ -789,7 +938,6 @@ export default {
                 font-size: 13px;
                 font-weight: 400;
                 color: #999999;
-                margin-bottom: 10px;
               }
             }
 
@@ -801,6 +949,7 @@ export default {
               justify-content: center;
               align-items: center;
               position: relative;
+              height: 100%;
 
               .button-cancel {
                 width: 60px;
@@ -819,8 +968,7 @@ export default {
               }
 
               .item-right-msg {
-                position: absolute;
-                bottom: 10px;
+                padding-top: 5px;
                 font-size: 13px;
                 font-weight: 400;
                 color: #999999;
@@ -849,6 +997,45 @@ export default {
             color: #6649c4;
           }
         }
+      }
+    }
+  }
+  .save-popup {
+    .save-header {
+      font-size: 18px;
+      font-weight: bold;
+      color: #555555;
+      padding: 15px 0;
+      border-bottom: 1px solid #eeeeee;
+      text-align: center;
+    }
+
+    .save-content {
+      padding: 20px 23px 15px 23px;
+      font-size: 18px;
+      font-weight: 400;
+      color: #555555;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .save-footer {
+      display: flex;
+      align-items: center;
+      width: 100%;
+
+      .save-footer-cancel {
+        margin-right: 5px;
+        margin-top: 30px;
+        background: #f1edff;
+        width: 100%;
+      }
+      .save-footer-sure {
+        margin-left: 5px;
+        color: #ffffff;
+        background: #6649c4;
+        margin-top: 30px;
+        width: 100%;
       }
     }
   }

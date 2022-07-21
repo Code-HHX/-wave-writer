@@ -22,19 +22,19 @@
           maxlength="25"
         />
         <div class="info-title">Description</div>
-        <input
+        <textarea
           ref="description"
           class="pwd"
           type="text"
           v-model.trim="newVoltage.description"
           placeholder="Please enter description"
-          maxlength="50"
+          maxlength="500"
         />
       </div>
       <div class="flavor">
         <div class="flavor-title">
           Flavor & Oil Type
-          <span @click="showFlavorPopup = true"
+          <span v-if="model != 'edit'" @click="showFlavorPopup = true"
             >Select <img src="@/assets/icons/icon_right.png"
           /></span>
         </div>
@@ -87,11 +87,16 @@
               active-color="#EEEEEE"
               inactive-color="#6649C4"
               @change="onChangeVoltageCurve(index)"
+              :disabled="model == 'edit' ? true : false"
             >
               <template #button>
                 <img
                   class="slider-button"
-                  src="@/assets/icons/icon_slider_button.png"
+                  :src="
+                    model === 'edit'
+                      ? require('@/assets/icons/icon_slider_button_disabled.png')
+                      : require('@/assets/icons/icon_slider_button.png')
+                  "
                 />
               </template>
             </van-slider>
@@ -114,6 +119,7 @@
                   active-color="#66DCA5"
                   inactive-color="#D6CDF2"
                   size="20"
+                  :disabled="model === 'edit' ? true : false"
                 />
               </div>
               <div class="subtitle">
@@ -206,6 +212,7 @@
                 active-color="#66DCA5"
                 inactive-color="#D6CDF2"
                 size="20"
+                :disabled="model === 'edit' ? true : false"
               />
               <div class="msg">
                 Only use to that device support NFC
@@ -287,7 +294,9 @@ export default {
       showFlavorPopup: false,
       activeSetting: "",
       beForm: "",
-      divSetting: {}
+      divSetting: {},
+      editId: "",
+      model: "create" //create or edit
     };
   },
   created() {
@@ -314,6 +323,68 @@ export default {
     this.activeSetting = this.$route.params;
     this.beForm = this.$route.params.beForm;
     this.divSetting = this.$route.params.divSetting;
+    this.editId = this.$route.params.editId;
+    this.model = this.$route.params.model;
+
+    if (this.model === "edit") {
+      this.$api.writer
+        .selectCurveById({
+          id: this.editId
+        })
+        .then(res => {
+          if (res.code === 200) {
+            this.newVoltage.id = res.data.id;
+            this.newVoltage.modeName = res.data.modeName;
+            this.newVoltage.description = res.data.description;
+            this.newVoltage.flavorId = res.data.flavorId;
+            this.newVoltage.nfcSettings = res.data.nfcSettings.toString();
+            this.newVoltage.preheatSetting = res.data.preheatSetting.toString();
+            this.newVoltage.preheatTime = res.data.preheatTime;
+            this.newVoltage.preheatVoltage = res.data.preheatVoltage;
+            this.newVoltage.temperature = res.data.temperature;
+
+            if (res.data.flavorId.length > 0) {
+              res.data.flavorId.forEach(element => {
+                this.flavorList.forEach(item => {
+                  if (element.toString() === item.id.toString()) {
+                    this.selectFlavorList.push(item);
+                  }
+                });
+              });
+            }
+
+            let curveList = res.data.temperature.split(",");
+            let newVoltageList = [];
+            curveList.forEach(element => {
+              newVoltageList.push(parseInt(element) * -1);
+            });
+            this.voltageCurve = newVoltageList;
+          } else {
+            this.$toast({
+              type: "fail",
+              duration: "2000",
+              forbidClick: "true",
+              position: "middle",
+              message: res.message
+            });
+            setTimeout(() => {
+              this.back();
+            }, 2000);
+          }
+        })
+        .catch(error => {
+          this.$toast({
+            type: "fail",
+            duration: "2000",
+            forbidClick: "true",
+            position: "middle",
+            message: error.message
+          });
+          setTimeout(() => {
+            this.back();
+          }, 2000);
+        });
+    }
 
     if (this.divSetting) {
       this.voltageCurve = this.divSetting.diyVoltage;
@@ -382,36 +453,89 @@ export default {
         this.$refs.description.focus();
         return;
       }
-      //处理电压曲线
-      this.newVoltage.temperature = this.voltageCurve
-        .map(item => Math.abs(item))
-        .toString();
-      this.$api.writer.saveVoltageSettings(this.newVoltage).then(res => {
-        if (res.code == 200) {
-          this.$toast({
-            type: "success",
-            duration: "1500",
-            position: "middle",
-            forbidClick: "true",
-            message: res.message
-          });
-          setTimeout(() => {
-            this.$router.replace({
-              name: "Settings",
-              params: {
-                activeSetting: "mySettings"
+      if (this.model === "edit") {
+        this.$api.writer
+          .updateVoltageName({
+            id: this.newVoltage.id,
+            modeName: this.newVoltage.modeName,
+            heatingRemarks: this.newVoltage.description
+          })
+          .then(res => {
+            if (res.code === 200) {
+              //处理缓存
+              let selectVoltage = JSON.parse(
+                window.localStorage.getItem("selectVoltage")
+              );
+              if (selectVoltage) {
+                selectVoltage.forEach(element => {
+                  if (element.id.toString() === this.newVoltage.id.toString()) {
+                    element.modeName = this.newVoltage.modeName;
+                  }
+                });
+                window.localStorage.setItem(
+                  "selectVoltage",
+                  JSON.stringify(selectVoltage)
+                );
               }
-            });
-          }, 1500);
-        } else {
-          this.$toast({
-            type: "fail",
-            duration: "2000",
-            position: "middle",
-            message: res.message
+              this.$toast({
+                type: "success",
+                duration: "2000",
+                position: "middle",
+                forbidClick: "true",
+                message: res.message
+              });
+              setTimeout(() => {
+                this.$router.replace({
+                  name: "Settings",
+                  params: {
+                    activeSetting: "mySettings"
+                  }
+                });
+              }, 2000);
+            } else {
+              this.$toast({
+                type: "fail",
+                duration: "2000",
+                position: "middle",
+                message: res.message
+              });
+            }
+          })
+          .catch(error => {
+            console.log(error);
           });
-        }
-      });
+      } else {
+        //处理电压曲线
+        this.newVoltage.temperature = this.voltageCurve
+          .map(item => Math.abs(item))
+          .toString();
+        this.$api.writer.saveVoltageSettings(this.newVoltage).then(res => {
+          if (res.code == 200) {
+            this.$toast({
+              type: "success",
+              duration: "1500",
+              position: "middle",
+              forbidClick: "true",
+              message: res.message
+            });
+            setTimeout(() => {
+              this.$router.replace({
+                name: "Settings",
+                params: {
+                  activeSetting: "mySettings"
+                }
+              });
+            }, 1500);
+          } else {
+            this.$toast({
+              type: "fail",
+              duration: "2000",
+              position: "middle",
+              message: res.message
+            });
+          }
+        });
+      }
     },
     onClickDome() {
       this.selectFlavorList = this.checkFlavorList;
@@ -500,6 +624,23 @@ export default {
         background: #ffffff;
         margin-top: 10px;
         margin-bottom: 16px;
+      }
+      textarea {
+        color: #555555;
+        border-radius: 8px;
+        border: 1px solid #dddddd;
+        background: #ffffff;
+        margin-top: 10px;
+        margin-bottom: 16px;
+        font-size: 18px;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: normal;
+        -webkit-box-sizing: border-box; //谷歌浏览器
+        -moz-box-sizing: border-box; //火狐浏览器
+        box-sizing: border-box; //其它浏览器
+        width: 100%;
+        padding: 11px;
+        resize: none;
       }
       input[type="text"]:focus {
         outline: none;

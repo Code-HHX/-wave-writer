@@ -1,4 +1,9 @@
-import { requestGet, requestGetForm, requestPost } from "../config/http-json";
+import {
+  requestGet,
+  requestGetForm,
+  requestPost,
+  requestPostForm
+} from "../config/http-json";
 
 const writer = {
   async selectCustomFirmwareSettings() {
@@ -34,6 +39,18 @@ const writer = {
       "/curve/selectFlavorByRecommend",
       params
     );
+    return response;
+  },
+  async selectCurveById(params = {}) {
+    let response = await requestGetForm("/curve/selectCurveById", params);
+    return response;
+  },
+  async updateVoltageName(params = {}) {
+    let response = await requestPost("/curve/updateVoltageName", params);
+    return response;
+  },
+  async deleteCurveById(params = {}) {
+    let response = await requestPostForm("/curve/deleteCurveById", params);
     return response;
   },
   async selectAllFlavor(params = {}) {

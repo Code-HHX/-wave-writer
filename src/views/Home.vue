@@ -33,7 +33,7 @@
           <div
             class="model-item"
             :class="curveModel === index ? 'model-item-active' : ''"
-            v-for="(item, index) in modelList"
+            v-for="(item, index) in modelList.slice(0, 6)"
             :key="index"
             @click="onClickModelItem(index)"
           >
@@ -70,20 +70,26 @@
         <div class="voltage-one">
           <div
             class="voltage-number"
-            v-for="(item, index) in modelList[curveModel].diyVoltage"
+            v-for="(item, index) in modelList[curveModel].diyVoltage.slice(
+              0,
+              6
+            )"
             :key="index"
           >
             {{ Math.abs(item / 1000).toFixed(1) }}v
           </div>
         </div>
         <div
-          id="voltageTwo"
           class="voltage-two"
+          id="voltageTwo"
           style="width:100%;height:calc(18vh)"
           @touchmove.prevent="onTouchmoveVoltage"
         >
           <van-slider
-            v-for="(value, index) in modelList[curveModel].diyVoltage"
+            v-for="(value, index) in modelList[curveModel].diyVoltage.slice(
+              0,
+              6
+            )"
             :key="index"
             v-model="modelList[0].diyVoltage[index]"
             vertical
@@ -107,6 +113,9 @@
           <div class="voltage-number" v-for="index of 6" :key="index">
             {{ index }}s
           </div>
+        </div>
+        <div class="description">
+          {{ modelList[0].heatingRemarks }}
         </div>
         <div class="control">
           <div class="control-left">
@@ -355,7 +364,6 @@
       </div>
     </van-popup>
     <!-- 退出登录弹窗 Logout -->
-
     <van-popup
       class="save-popup"
       v-model="showLogoutPopup"
@@ -449,8 +457,8 @@ export default {
       isConnected: state => state.bluetooth.isConnected,
       deviceList: state => state.bluetooth.deviceList,
       deviceVersion: state => state.bluetooth.deviceVersion,
-      macAddress: state=> state.bluetooth.macAddress,
-      cartridgeFlag: state=> state.bluetooth.cartridgeFlag,
+      macAddress: state => state.bluetooth.macAddress,
+      cartridgeFlag: state => state.bluetooth.cartridgeFlag
     }),
     saveDisabled() {
       if (this.curveModel === 0) {
@@ -494,6 +502,7 @@ export default {
       Object.assign(this.modelList[0], this.modelList[index]);
       this.modelList[0].id = 0;
       this.modelList[0].modeName = "DIY";
+      if (index == 0) this.modelList[0].heatingRemarks = "";
       const origin = this.modelList[index].diyVoltage;
       this.modelList[0].diyVoltage = [].concat(origin);
     },
@@ -664,7 +673,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 16px 0 16px 0;
+    margin-top: 16px;
 
     .header-menu {
       position: absolute;
@@ -772,11 +781,12 @@ export default {
     }
 
     .content-main {
-      height: 100%;
+      height: calc(100vh - 180px); //168
       margin-top: 20px;
       background: #ffffff;
       border-radius: 20px 20px 0 0;
       padding: 15px 15px 0 15px;
+      overflow-y: auto;
 
       .main-header {
         display: flex;
@@ -850,9 +860,19 @@ export default {
         }
       }
 
+      .description {
+        margin-top: 16px;
+        padding-left: 6px;
+        font-size: 14px;
+        font-weight: 400;
+        color: #939598;
+        line-height: 15px;
+      }
+
       .control {
         display: flex;
         margin-top: 16px;
+        margin-bottom: 94px;
 
         .control-left {
           width: 100%;
