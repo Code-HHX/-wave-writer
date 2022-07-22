@@ -224,11 +224,7 @@
                   {{ Math.abs(item / 1000).toFixed(1) }}v
                 </div>
               </div>
-              <div
-                id="voltageTwo"
-                class="voltage-two"
-                style="width:100%;height:calc(20vh)"
-              >
+              <div class="voltage-two" style="width:100%;height:calc(20vh)">
                 <van-slider
                   v-for="(value, index) in deviceVoltage"
                   :key="index"
@@ -258,6 +254,7 @@
             </div>
           </div>
         </div>
+
         <div v-else-if="loadDeviceSettingStatus === 0" class="error-info">
           <div class="device-error-msg">{{ errorMessage }}</div>
           <div class="try-again" @click="reloadDeviceSetting">
@@ -292,7 +289,8 @@ export default {
       selectModel: "Wave Writer",
       hubSetting: this.getHubSetting(),
       loadDeviceSettingStatus: 2,
-      errorMessage: ""
+      errorMessage: "",
+      connectTimeoutId: -1
     };
   },
   created() {},
@@ -310,7 +308,7 @@ export default {
       return deviceCurve;
     },
     hubVoltage() {
-      return this.hubSetting.diyVoltage.map(item => item * -1).slice(0, 6);
+      return this.hubSetting.diyVoltage.slice(0, 6).map(item => item * -1);
     },
     deviceType() {
       if (this.deviceId) {
@@ -348,8 +346,12 @@ export default {
       }
       return "";
     },
+    //如果是nord的话，直接显示为1.2阻值
     resistance() {
       if (this.deviceId) {
+        if (this.insertDeviceName.toUpperCase() === "NORD") {
+          return "1.2";
+        }
         const r = this.deviceId.atomizedR;
         return `${(r / 10).toFixed(1)}`;
       }
@@ -373,6 +375,7 @@ export default {
     onClickApply() {
       this.applyToHomePage();
     },
+    //应用回首页
     applyToHomePage() {
       const deviceSetting = this.writerSetting;
       const setting = new WriterSetting();
@@ -388,27 +391,42 @@ export default {
         }
       });
     },
+    //查询设备信息
     async reloadDeviceSetting() {
-      this.loadDeviceSettingStatus = 2; //转圈加载
-      await bluetoothRepository.queryWriter();
-      this.loadDeviceSettingStatus = 1; //加载成功
+      try {
+        this.loadDeviceSettingStatus = 2; //转圈加载
+        //加入超时
+        this.connectTimeoutId = setTimeout(() => {
+          this.handleError("Read timeout");
+        }, 6000);
+        await bluetoothRepository.queryWriter();
+        clearTimeout(this.connectTimeoutId);
+        this.loadDeviceSettingStatus = 1; //加载成功
+      } catch (e) {
+        this.handleError(e);
+      }
+    },
+    //处理错误以及超时
+    handleError(e) {
+      clearTimeout(this.connectTimeoutId);
+      if (!this.isConnected) {
+        this.errorMessage = "Device Disconnected";
+        this.loadDeviceSettingStatus = 0; //加载失败
+        return;
+      }
+      //提示用户失败了
+      if (typeof e === "string") {
+        this.errorMessage = e;
+      } else {
+        this.errorMessage = "Read device info failure!";
+      }
+      this.loadDeviceSettingStatus = 0; //加载失败
     },
     async onClickSelectModel(model) {
       this.selectModel = model;
       if (model === "Device") {
         //如果是device的时候，转圈加载完在显示
-        try {
-          this.loadDeviceSettingStatus = 2; //转圈加载
-          await bluetoothRepository.queryWriter();
-          this.loadDeviceSettingStatus = 1; //加载成功
-        } catch (e) {
-          if (typeof e === "string") {
-            this.errorMessage = e;
-          } else {
-            this.errorMessage = "Read device info failure!";
-          }
-          this.loadDeviceSettingStatus = 0; //加载失败
-        }
+        this.reloadDeviceSetting();
       }
     }
   }
@@ -475,15 +493,18 @@ export default {
     .info-item:first-child {
       margin-top: 0px;
     }
+
     .info-item:last-child {
       margin-bottom: 16px;
     }
+
     .info-device-load {
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 60px 0;
     }
+
     .error-info {
       height: 50vh;
       color: #86a1a9;
@@ -559,6 +580,7 @@ export default {
             color: #555555;
           }
         }
+
         .voltage-one {
           margin: 16px 0 16px 0;
           display: flex;

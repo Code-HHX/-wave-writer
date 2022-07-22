@@ -611,7 +611,7 @@ export default {
         this.cartridgeFlag,
         this.macAddress,
         this.deviceVersion,
-        "iOS&1.0.0",
+        navigator.bluetooth2 ? "Android-wv&1.0.0" : "iOS-wv&1.0.0",
         writerSetting
       );
     },
