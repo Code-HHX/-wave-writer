@@ -100,7 +100,7 @@
             <div class="voltage-one">
               <div
                 class="voltage-number"
-                v-for="(item, index) in hubVoltage"
+                v-for="(item, index) in hubVoltage.slice(0, 6)"
                 :key="index"
               >
                 {{ Math.abs(item / 1000).toFixed(1) }}v
@@ -112,7 +112,7 @@
               style="width:100%;height:calc(20vh)"
             >
               <van-slider
-                v-for="(value, index) in hubVoltage"
+                v-for="(value, index) in hubVoltage.slice(0, 6)"
                 :key="index"
                 v-model="hubVoltage[index]"
                 vertical
@@ -218,7 +218,7 @@
               <div class="voltage-one">
                 <div
                   class="voltage-number"
-                  v-for="(item, index) in deviceVoltage"
+                  v-for="(item, index) in deviceVoltage.slice(0, 6)"
                   :key="index"
                 >
                   {{ Math.abs(item / 1000).toFixed(1) }}v
@@ -226,7 +226,7 @@
               </div>
               <div class="voltage-two" style="width:100%;height:calc(20vh)">
                 <van-slider
-                  v-for="(value, index) in deviceVoltage"
+                  v-for="(value, index) in deviceVoltage.slice(0, 6)"
                   :key="index"
                   v-model="deviceVoltage[index]"
                   vertical
@@ -298,7 +298,8 @@ export default {
   watch: {},
   computed: {
     ...mapState({
-      macAddress: state => state.bluetooth.macAddress
+      macAddress: state => state.bluetooth.macAddress,
+      isConnected: state => state.bluetooth.isConnected
     }),
     ...mapState("bluetooth", ["deviceId", "insertDeviceName", "writerSetting"]),
     deviceVoltage() {
@@ -423,6 +424,7 @@ export default {
       this.loadDeviceSettingStatus = 0; //加载失败
     },
     async onClickSelectModel(model) {
+      if (this.selectModel === model) return;
       this.selectModel = model;
       if (model === "Device") {
         //如果是device的时候，转圈加载完在显示

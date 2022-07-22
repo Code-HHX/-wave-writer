@@ -63,7 +63,7 @@
           <div class="voltage-one">
             <div
               class="voltage-number"
-              v-for="(item, index) in voltageCurve"
+              v-for="(item, index) in voltageCurve.slice(0, 6)"
               :key="index"
             >
               {{ Math.abs(item / 1000).toFixed(1) }}v
@@ -76,7 +76,7 @@
             @touchmove.prevent="onTouchmoveVoltage"
           >
             <van-slider
-              v-for="(value, index) in voltageCurve"
+              v-for="(value, index) in voltageCurve.slice(0, 6)"
               :key="index"
               v-model="voltageCurve[index]"
               vertical
@@ -506,9 +506,12 @@ export default {
           });
       } else {
         //处理电压曲线
-        this.newVoltage.temperature = this.voltageCurve
-          .map(item => Math.abs(item))
-          .toString();
+        let newCurveList = this.voltageCurve.map(item => Math.abs(item));
+        if (newCurveList.length <= 6) {
+          newCurveList.push(newCurveList[newCurveList.length - 1]);
+          newCurveList.push(newCurveList[newCurveList.length - 1]);
+        }
+        this.newVoltage.temperature = newCurveList.toString();
         this.$api.writer.saveVoltageSettings(this.newVoltage).then(res => {
           if (res.code == 200) {
             this.$toast({
