@@ -363,7 +363,7 @@ export default {
         const year = this.deviceId.productYear;
         const week = this.deviceId.productWeek;
 
-        return `week ${week}, 20${year.toString(16)}`;
+        return `week ${week.toString(16)}, 20${year.toString(16)}`;
       }
       return "";
     }

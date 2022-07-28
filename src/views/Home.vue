@@ -584,6 +584,12 @@ export default {
       writerSetting.diyVoltage = writerSetting.diyVoltage.map(item =>
         Math.abs(item)
       );
+      const length = writerSetting.diyVoltage;
+      if (length < 8) {
+        const lastVoltage = writerSetting.diyVoltage[length - 1];
+        writerSetting.diyVoltage.push(lastVoltage);
+        writerSetting.diyVoltage.push(lastVoltage);
+      }
       try {
         await bluetoothRepository.writeToWriter(writerSetting);
       } catch (e) {

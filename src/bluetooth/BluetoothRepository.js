@@ -526,13 +526,13 @@ class BluetoothRepository {
       bluetooth = navigator.bluetooth;
     }
     const device = await bluetooth.requestDevice({
-      // filters: [{ namePrefix: "HB" }],
-      // optionalServices: [
-      //   DEVICE_READ_SERVICE_UUID,
-      //   DEVICE_WRITE_SERVER_UUID,
-      //   BATTERY_SERVICE_UUID
-      // ],
-      acceptAllDevices: true,
+      filters: [{ namePrefix: "HB" }],
+      optionalServices: [
+        DEVICE_READ_SERVICE_UUID,
+        DEVICE_WRITE_SERVER_UUID,
+        BATTERY_SERVICE_UUID
+      ],
+      // acceptAllDevices: true,
       token: null
     });
 
